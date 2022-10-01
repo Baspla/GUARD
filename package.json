@@ -9,7 +9,7 @@
   "keywords": [],
   "type": "module",
   "author": "Tim Morgner",
-  "license": "TBA",
+  "license": "GNU GPLv3",
   "dependencies": {
     "bootstrap": "^5.2.1",
     "cookie-parser": "^1.4.6",
