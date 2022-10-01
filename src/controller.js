@@ -73,6 +73,13 @@ export function doRegisterUser(req,res,next){
             return res.redirect('/register?error=5&returnURL='+returnURL);
         }
     }
+    if(!isUsernameValid(username)){
+        if(returnURL == null){
+            return res.redirect('/register?error=7');
+        }else{
+            return res.redirect('/register?error=7&returnURL='+returnURL);
+        }
+    }
     isUsernameAvailable(username).then((exists) => {
         if (exists) {
             if(returnURL == null){
