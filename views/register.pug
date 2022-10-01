@@ -1,0 +1,16 @@
+extends layout
+block append scripts
+    script(src='/scripts/register.js' defer)
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+block content
+    .align-self-center.neumorph.px-5.pt-5.pb-4
+        h1.fs-1.mb-3  GUARD SSO
+        .alert.alert-danger(hidden)#alert
+            #alert-text
+        form.mb-3
+            input.form-control.mb-3#display(placeholder="Anzeigename", type="text")
+            input.form-control.mb-3#username(placeholder="Nutzername", type="text")
+            input.form-control.mb-3#password(placeholder="Passwort", type="password")
+            button.btn.btn-primary#btn(type="button") Registrieren
+

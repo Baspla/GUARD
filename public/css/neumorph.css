@@ -1,0 +1,24 @@
+@media only screen and (min-width: 576px) {
+    .neumorph {
+        border-radius: 64px;
+        background: linear-gradient(145deg, #e6e6e6, #ffffff);
+        box-shadow: 23px 23px 46px #ebebeb,
+        -23px -23px 46px #ffffff;
+
+    }
+}
+.glass{
+    border-radius: 64px;
+    background: #ffffff80;
+    backdrop-filter: blur(6px);
+}
+
+.bg-image {
+    background-image: url("https://source.unsplash.com/random");
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+/*body {
+    background: linear-gradient(-45deg, #4c07d7, #78b2fc);
+}*/
