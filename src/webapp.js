@@ -4,7 +4,19 @@ import cookieParser from 'cookie-parser';
 import {startDB} from "./db.js";
 import {fileURLToPath} from 'url';
 import {dirname} from 'path';
-import {dashboard, doLogin, doRegisterUser, login, logout, namechange, registerUser, sso} from "./controller.js";
+import {
+    dashboard,
+    doLogin,
+    doRegisterUser,
+    login,
+    logout,
+    passwordchange,
+    usernamechange,
+    displaynamechange,
+    registerUser,
+    sso,
+    doDisplaynamechange, doUsernamechange, doPasswordchange
+} from "./controller.js";
 import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -46,8 +58,12 @@ webapp.get('/logout', logout)
 
 webapp.post('/login', doLogin)
 
-webapp.post('/namechange', namechange)
-
+webapp.get('/displaynamechange', displaynamechange)
+webapp.get('/usernamechange', usernamechange)
+webapp.get('/passwordchange', passwordchange)
+webapp.post('/displaynamechange', doDisplaynamechange)
+webapp.post('/usernamechange', doUsernamechange)
+webapp.post('/passwordchange', doPasswordchange)
 webapp.get('/sso',sso)
 
 webapp.get('/login', login)
@@ -58,7 +74,7 @@ webapp.use((req, res, next) => {
     next(err);
 });
 
-webapp.use((err, req, res) => {
+webapp.use((err, req, res,_next) => {
     const statusCode = err.status || 500;
     let message = err.message || "Internal Server Error";
 

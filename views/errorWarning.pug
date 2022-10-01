@@ -1,4 +1,4 @@
-.alert.alert-danger(hidden=(error===undefined))
+.alert.alert-danger(hidden=(error === undefined))
     if error === "1"
         | Username oder Passwort fehlen
     else if error === "2"
@@ -13,3 +13,11 @@
         | Der gewählte Nutzername ist bereits vergeben
     else if error === "7"
         | Der gewählte Nutzername ist nicht zulässig
+    else if error === "8"
+        | Kein Nutzername angegeben
+    else if error === "9"
+        | Kein Passwort angegeben
+    else if error === "10"
+        | Das Passwort ist nicht zulässig
+    else if error === "11"
+        | Falsches Passwort

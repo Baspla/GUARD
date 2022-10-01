@@ -3,13 +3,10 @@ block append css
     link(rel='stylesheet', href='/sheets/neumorph.css')
 block content
     .align-self-center.neumorph.px-5.py-4
-        h1.fs-1.mt-2.mb-3  GUARD SSO
+        h1.fs-1.mt-2.mb-3 GUARD SSO
         include errorWarning
-        p Du bist angemeldet als
-            span  #{username}
-            | .
-        form.mb-3(method='post' action='/namechange')
-            label.form-label(for="displayname") Anzeigename ändern
-            input.form-control.mb-3#displayname(placeholder="Anzeigename", type="text", name="displayname", value=displayname)
-            a.btn.btn.btn-outline-secondary.mt-2.mx-2#logoutButton(href="logout") Abmelden
-            button.btn.btn-primary.mt-2.mx-2#btn(type="submit") Ändern
+        a.btn.btn-primary.m-1(href="displaynamechange") Anzeigename ändern
+        a.btn.btn-primary.m-1(href="usernamechange") Nutzername ändern
+        a.btn.btn-primary.m-1(href="passwordchange") Passwort ändern
+        br
+        a.btn.btn-outline-secondary.m-1#logoutButton(href="logout") Abmelden

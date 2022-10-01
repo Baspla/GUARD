@@ -1,5 +1,8 @@
+// noinspection JSCheckFunctionSignatures
+
 import * as redis from "redis";
 import * as crypto from "crypto";
+
 const rc = redis.createClient({
     socket: {
         host: process.env.REDIS_HOST,
@@ -24,38 +27,67 @@ export function hash(password) {
     return crypto.createHash('sha256').update(password).digest('base64');
 }
 
-export function checkUser(username,password) {
-    return rc.hGet("guard:user:" + escape(username), "password").then(value => {
+export function getUUIDByToken(token) {
+    return rc.get("guard:token:" + escape(token));
+}
+
+export function getUUIDByUsername(username) {
+    return rc.hGet("guard:usernames", username);
+}
+
+export function checkPassword(uuid, password) {
+    return rc.hGet("guard:user:" + escape(uuid), "password").then(value => {
         if (value !== undefined && value !== null) {
-            return value === hash(username+password)
+            return value === hash(uuid + password)
         }
         return false
     })
 }
-export function storeToken(username,token){
-    return rc.set("guard:token:" + escape(token), username).then(() => {
-        return rc.expire("guard:token:" + escape(token), 60*60) //Token verfällt nach einer Stunde
+
+export function storeToken(uuid, token) {
+    return rc.set("guard:token:" + escape(token), uuid).then(() => {
+        return rc.expire("guard:token:" + escape(token), 60 * 60) //Token verfällt nach einer Stunde
     })
 }
 
-export function getUsernameByToken(token){
-    return rc.get("guard:token:" + escape(token))
-}
-export function getDisplayname(username){
-    return rc.hGet("guard:user:" + escape(username), "displayname")
-}
-export function setDisplayname(username,displayname){
-    return rc.hSet("guard:user:" + escape(username), "displayname", displayname)
-}
-export function setPassword(username,password){
-    return rc.hSet("guard:user:" + escape(username), "password", hash(username+password))
+export function getDisplayname(uuid) {
+    return rc.hGet("guard:user:" + escape(uuid), "displayname")
 }
 
-export function storeUser(username,password,displayname){
-    return rc.hSet("guard:user:" + escape(username), "password", hash(username+password)).then(() => {
-        return rc.hSet("guard:user:" + escape(username), "displayname", displayname)
+export function setDisplayname(uuid, displayname) {
+    return rc.hSet("guard:user:" + escape(uuid), "displayname", displayname)
+}
+
+export function setUsername(uuid, username) {
+    return getUsername(uuid).then((oldUsername) => {
+        return rc.hDel("guard:usernames", oldUsername).then(() => {
+            return rc.hSet("guard:usernames", "username", username).then(() => {
+                return rc.hSet("guard:user:" + escape(uuid), "username", username)
+            })
+        })
     })
 }
-export function isUsernameAvailable(username){
-    return rc.exists("guard:user:" + escape(username))
+
+export function setPassword(uuid, password) {
+    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password))
+}
+
+export function storeUser(uuid, username, password, displayname) {
+    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password)).then(() => {
+        return rc.hSet("guard:user:" + escape(uuid), "displayname", displayname).then(() => {
+            return rc.hSet("guard:user:" + escape(uuid), "username", username).then(
+                () => {
+                    return rc.hSet("guard:usernames", username, uuid)
+                }
+            )
+        })
+    })
+}
+
+export function getUsername(uuid) {
+    return rc.hGet("guard:user:" + escape(uuid), "username")
+}
+
+export function isUsernameAvailable(username) {
+    return rc.hExists("guard:usernames", username)
 }
