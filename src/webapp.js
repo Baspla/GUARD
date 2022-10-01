@@ -26,6 +26,7 @@ webapp.set('views', __dirname + '/../views')
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
 webapp.use('/js', express.static(__dirname + '/../node_modules/bootstrap/dist/js'))
 webapp.use('/favicon.ico', express.static(__dirname + '/../public/images/favicon.ico'))
+webapp.use('/images', express.static(__dirname + '/../public/images'))
 webapp.use('/scripts', express.static(__dirname + '/../public/javascript'))
 webapp.use('/sheets', express.static(__dirname + '/../public/css'))
 webapp.use(express.json());
