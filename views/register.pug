@@ -4,13 +4,12 @@ block append scripts
 block append css
     link(rel='stylesheet', href='/sheets/neumorph.css')
 block content
-    .align-self-center.neumorph.px-5.pt-5.pb-4
-        h1.fs-1.mb-3  GUARD SSO
-        .alert.alert-danger(hidden)#alert
-            #alert-text
-        form.mb-3
-            input.form-control.mb-3#display(placeholder="Anzeigename", type="text")
-            input.form-control.mb-3#username(placeholder="Nutzername", type="text")
-            input.form-control.mb-3#password(placeholder="Passwort", type="password")
-            button.btn.btn-primary#btn(type="button") Registrieren
-
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3 GUARD SSO
+        include errorWarning
+        form.mb-3(method="post")
+            input.form-control.mb-3#displayname(placeholder="Anzeigename", name="displayname", type="text")
+            input.form-control.mb-3#username(placeholder="Nutzername", name="username", type="text")
+            input.form-control.mb-3#password(placeholder="Passwort", name="password", type="password")
+            input.form-control.mb-3#passwordRepeat(placeholder="Passwort wiederholen", name="passwordRepeat", type="password")
+            button.btn.btn-primary#btn(type="submit") Registrieren

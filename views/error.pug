@@ -1,0 +1,13 @@
+extends layout
+block append scripts
+    script(src='/scripts/login.js' defer)
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+block content
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2 GUARD SS
+            .spinner-border.fs-6
+        .alert.alert-danger(hidden)#alert
+            #alert-text
+        span.fs-2.text-danger #{error}
+        p #{message}

@@ -1,0 +1,17 @@
+extends layout
+block append scripts
+    script(src='/scripts/login.js' defer)
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+block content
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3  GUARD SSO
+        include errorWarning
+        p Du bist angemeldet als
+            span  #{username}
+            | .
+        form.mb-3(method='post' action='/namechange')
+            label.form-label(for="displayname") Anzeigename ändern
+            input.form-control.mb-3#displayname(placeholder="Anzeigename", type="text", name="displayname", value=displayname)
+            a.btn.btn.btn-outline-secondary.mt-2.mx-2#logoutButton(href="logout") Abmelden
+            button.btn.btn-primary.mt-2.mx-2#btn(type="submit") Ändern

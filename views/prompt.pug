@@ -1,17 +1,20 @@
 extends layout
 block append scripts
-    script(src='/scripts/prompt.js' defer)
 block append css
     link(rel='stylesheet', href='/sheets/neumorph.css')
 block content
-    .align-self-center.neumorph.px-5.pt-5.pb-4
-        h1.fs-1.mb-3  GUARD SSO
-        .alert.alert-danger(hidden)#alert
-            #alert-text
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3 GUARD SSO
+        include errorWarning
         p Du bist derzeit angemeldet als
             br
-            span.fs-3 #{user}
-        p Möchtest du mit dem Login fortfahren?
-        .flex.mb-3
-            button.btn.btn-outline-secondary.m-1#logout(type="button") Abmelden
-            button.btn.btn-primary.m-1#continue(type="button") Fortfahren
+            span.fs-3 #{username}
+        p Möchtest du mit dem Login bei
+            |
+            |
+            span.text-decoration-underline #{hostname}
+            |  fortfahren?
+            form(method="post").flex.mb-3
+                input(type="hidden" name="confirmed" value="true")
+                a.btn.btn-outline-secondary.m-1#logout(href="/logout?returnURL="+returnURL) Abmelden
+                button.btn.btn-primary.m-1#continue(type="submit") Fortfahren

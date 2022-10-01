@@ -1,9 +1,11 @@
 import express from "express";
 import session from 'express-session'
 import cookieParser from 'cookie-parser';
-import { startDB} from "./db.js";
+import {startDB} from "./db.js";
 import {fileURLToPath} from 'url';
 import {dirname} from 'path';
+import {dashboard, doLogin, doRegisterUser, login, logout, namechange, registerUser, sso} from "./controller.js";
+import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,42 +22,53 @@ webapp.use(session({
 }))
 
 webapp.set('view engine', 'pug')
-webapp.set('views', __dirname+ '/../views')
+webapp.set('views', __dirname + '/../views')
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
 webapp.use('/js', express.static(__dirname + '/../node_modules/bootstrap/dist/js'))
 webapp.use('/favicon.ico', express.static(__dirname + '/../public/images/favicon.ico'))
 webapp.use('/scripts', express.static(__dirname + '/../public/javascript'))
 webapp.use('/sheets', express.static(__dirname + '/../public/css'))
 webapp.use(express.json());
+webapp.use(bodyParser.urlencoded({extended: true}));
 
 //
 // WEP PAGES
 //
 
-webapp.get('/', (req, res) => {
-    res.redirect("/login")
-})
+webapp.get('/', dashboard)
 
-webapp.get('/register', (req, res) => {
-        res.render('register')
-})
+webapp.get('/register', registerUser)
 
-webapp.get('/prompt', (req, res) => {
-    res.render('prompt', {user: "Test User"})
-})
+webapp.post('/register', doRegisterUser)
 
-webapp.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.render('logout')
-})
+webapp.get('/logout', logout)
 
-webapp.get('/login', (req, res) => {
-    if (req.session.username) {
-        res.render('prompt')
-    }else {
-        res.render('login')
+webapp.post('/login', doLogin)
+
+webapp.post('/namechange', namechange)
+
+webapp.get('/sso',sso)
+
+webapp.get('/login', login)
+
+webapp.use((req, res, next) => {
+    const err = new Error("Die angeforderte Seite konnte nicht gefunden werden.");
+    err.status = 404;
+    next(err);
+});
+
+webapp.use((err, req, res) => {
+    const statusCode = err.status || 500;
+    let message = err.message || "Internal Server Error";
+
+    if (statusCode === 500) {
+        message = "Internal Server Error";
     }
-})
+    if(statusCode !== 404&&statusCode !== 400){
+        console.log(err)
+    }
+    res.status(statusCode).render('error', {error: statusCode, message: message})
+});
 
 async function start() {
     await startDB().then(() => {

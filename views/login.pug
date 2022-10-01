@@ -1,15 +1,23 @@
 extends layout
 block append scripts
-    script(src='/scripts/login.js' defer)
 block append css
     link(rel='stylesheet', href='/sheets/neumorph.css')
 block content
-    .align-self-center.neumorph.px-5.pt-5.pb-4
-        h1.fs-1.mb-3  GUARD SSO
-        .alert.alert-danger(hidden)#alert
-            #alert-text
-        form.mb-3
-            input.form-control.mb-3#username(placeholder="Nutzername", type="text")
-            input.form-control.mb-3#password(placeholder="Passwort", type="password")
-            button.btn.btn-primary#loginButton(type="button") Anmelden
-        a.btn.btn-sm.btn-outline-secondary.mb-2#registerButton(href="register") Registrieren
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3 GUARD SSO
+        include errorWarning
+        if hostname !== null
+            p Du meldest dich bei
+                |
+                |
+                span.text-decoration-underline #{hostname}
+                |  an.
+        form.mb-3(method="post")
+            input.form-control.mb-3#username(name="username" placeholder="Nutzername", type="text")
+            input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
+            a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
+            button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
+                //|
+                //|
+                //svg.bi.bi-key(xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16")
+                //    path(d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2zM2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2z")

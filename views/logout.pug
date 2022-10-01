@@ -1,0 +1,12 @@
+extends layout
+block append scripts
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+block content
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3  GUARD SSO
+        include errorWarning
+        p Du wurdest
+            span.text-success  erfolgreich
+            |  abgemeldet.
+        a.btn.btn-sm.btn-outline-secondary.mb-2#registerButton(href="login") Zurück zum Login

@@ -1,0 +1,13 @@
+.alert.alert-danger(hidden=(error===undefined))
+    if error === "1"
+        | Username oder Passwort fehlen
+    else if error === "2"
+        | Username oder Passwort ist falsch
+    else if error === "3"
+        | Kein Anzeigename angegeben
+    else if error === "4"
+        | Der gewählte Anzeigename ist nicht zulässig
+    else if error === "5"
+        | Die Passwörter stimmen nicht überein
+    else if error === "6"
+        | Der gewählte Nutzername ist bereits vergeben
