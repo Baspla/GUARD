@@ -8,7 +8,7 @@ import {
     storeToken,
     storeUser
 } from "./db.js";
-import {isDisplaynameValid} from "./validator.js";
+import {isDisplaynameValid, isUsernameValid} from "./validator.js";
 
 export function logout(req, res) {
     const {returnURL} = req.query;
