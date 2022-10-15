@@ -94,8 +94,8 @@ export function doRegisterUser(req, res, next) {
     if (!isPasswordValid(password)) {
         return res.redirect('/register?error=10' + suffix)
     }
-    if (!isDisplaynameValid(password)) {
-        return res.redirect('/register?error=10' + suffix)
+    if (!isDisplaynameValid(displayname)) {
+        return res.redirect('/register?error=4' + suffix)
     }
     isUsernameAvailable(username).then((exists) => {
         if (exists) {

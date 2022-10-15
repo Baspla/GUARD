@@ -61,7 +61,7 @@ export function setDisplayname(uuid, displayname) {
 export function setUsername(uuid, username) {
     return getUsername(uuid).then((oldUsername) => {
         return rc.hDel("guard:usernames", oldUsername).then(() => {
-            return rc.hSet("guard:usernames", "username", username).then(() => {
+            return rc.hSet("guard:usernames", username, escape(uuid)).then(() => {
                 return rc.hSet("guard:user:" + escape(uuid), "username", username)
             })
         })
