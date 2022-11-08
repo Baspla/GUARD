@@ -1,3 +1,7 @@
+.limited {
+    width: 90%;
+}
+
 @media only screen and (min-width: 576px) {
     .neumorph {
         border-radius: 64px;
@@ -6,7 +10,12 @@
         -23px -23px 46px #ffffff;
 
     }
+
+    .limited {
+        width: 480px;
+    }
 }
+
 .glass{
     border-radius: 64px;
     background: #ffffff80;

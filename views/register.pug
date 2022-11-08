@@ -10,4 +10,7 @@ block content
             input.form-control.mb-3#username(placeholder="Nutzername", name="username", type="text")
             input.form-control.mb-3#password(placeholder="Passwort", name="password", type="password")
             input.form-control.mb-3#passwordRepeat(placeholder="Passwort wiederholen", name="passwordRepeat", type="password")
+            div
+                input.form-check-input.mb-3#check(name="check", type="checkbox", required="required")
+                label.form-check-label.mb-3.limited(for="check") Ich bestätige hiermit, dass ich ein Freund oder Bekannter bin, der persönlich eingeladen wurde, sich bei GUARD SSO zu registrieren.
             button.btn.btn-primary#btn(type="submit") Registrieren
