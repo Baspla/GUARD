@@ -123,7 +123,9 @@ function registerTokenAndRedirect(req, res, returnURL) {
     let id = generateuuid();
     console.debug("Generated token: " + id + " for user: " + req.session.uuid + " and returnURL: " + returnURL);
     storeToken(req.session.uuid, id).then(() => {
-        res.redirect(`${returnURL}?GUARDTOKEN=${id}`);
+        var url = new URL(returnURL);
+        url.searchParams.append('GUARDTOKEN', id);
+        res.redirect(url);
     })
 }
 
