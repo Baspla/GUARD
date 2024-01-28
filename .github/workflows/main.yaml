@@ -9,18 +9,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18.x]
-        architecture: [amd64, arm64]
 
     steps:
       - uses: actions/checkout@v3
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -28,7 +19,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18.x
 
       - name: npm build
         run: |
@@ -43,7 +34,11 @@ jobs:
           docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
 
       - name: Docker Build and Push
-        env:
-          TAG: ${{ matrix.architecture == 'amd64' && 'latest' || 'arm64-latest' }}
-        run: |
-          docker buildx build --platform linux/${{ matrix.architecture }} --file Dockerfile --tag baspla/guard:${TAG} --push .
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          tags: baspla/guard:latest, baspla/guard:arm64-latest
+          platforms: linux/amd64, linux/arm64
+
