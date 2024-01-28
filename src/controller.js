@@ -79,11 +79,14 @@ export function registerUser(req, res) {
 }
 
 export function doRegisterUser(req, res, next) {
-    const {username, password, passwordRepeat, displayname} = req.body;
+    const {username, password, passwordRepeat, displayname,secret} = req.body;
     const {returnURL} = req.query;
     let suffix = "";
     if (returnURL != null) {
         suffix = "&returnURL=" + returnURL;
+    }
+    if (secret !== process.env.REGISTER_SECRET) {
+        return res.redirect('/register?error=12' + suffix);
     }
     if (password !== passwordRepeat) {
         return res.redirect('/register?error=5' + suffix);
@@ -139,8 +142,24 @@ export function sso(req, res) {
             return res.status(400).json({error: "GUARDTOKEN ist ungültig.", code: 400})
         }
         getDisplayname(uuid).then((displayname) => {
+            if (displayname == null) {
+                return res.status(400).json({error: "UUID ist ungültig.", code: 400})
+            }
             res.status(200).json({uuid: uuid, displayname: displayname})
         })
+    })
+}
+
+export function getInformation(req, res) {
+    const {uuid} = req.query;
+    if (uuid == null) {
+        return res.status(400).json({error: "UUID fehlt.", code: 400})
+    }
+    getDisplayname(uuid).then((displayname) => {
+        if (displayname == null) {
+            return res.status(400).json({error: "UUID ist ungültig.", code: 400})
+        }
+        res.status(200).json({uuid: uuid, displayname: displayname})
     })
 }
 

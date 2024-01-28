@@ -15,7 +15,7 @@ import {
     displaynamechange,
     registerUser,
     sso,
-    doDisplaynamechange, doUsernamechange, doPasswordchange
+    doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
 } from "./controller.js";
 import * as bodyParser from "express";
 
@@ -49,6 +49,8 @@ webapp.use(bodyParser.urlencoded({extended: true}));
 //
 
 webapp.get('/', dashboard)
+
+webapp.get('/info', getInformation)
 
 webapp.get('/register', registerUser)
 
