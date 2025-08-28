@@ -105,6 +105,7 @@ export async function getAllUsers() {
         users.push({
             uuid,
             displayname: data.displayname,
+            username: data.username,
             creation: data.creation ? new Date(Number(data.creation)).toLocaleString() : "",
             lastLogin: data.lastLogin ? new Date(Number(data.lastLogin)).toLocaleString() : ""
         });
