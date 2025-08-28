@@ -23,5 +23,7 @@ block content
           = user.username
           |  
           a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`) Reset
+          |  
+          a(href=`/admin/passkeys/${encodeURIComponent(user.uuid)}`) Passkeys
         td.px-4.py-2.border-b.border-gray-200= user.creation
         td.px-4.py-2.border-b.border-gray-200= user.lastLogin

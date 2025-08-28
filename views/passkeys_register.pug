@@ -1,0 +1,19 @@
+extends layout
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+block content
+    .align-self-center.neumorph.px-5.py-4
+        h1.fs-1.mt-2.mb-3 Passkey registrieren
+        p Klicke auf den Button und folge den Anweisungen deines Authenticators.
+        button.btn.btn-primary#registerPasskey(type='button') Registrieren
+        script(src='/scripts/webauthn.js')
+        script.
+            document.getElementById('registerPasskey').addEventListener('click', async function(){
+                const res = await fetch('/passkeys/register/options');
+                const opts = await res.json();
+                const attestation = await window.performCreate(opts);
+                const verify = await fetch('/passkeys/register/verify', {method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(attestation)});
+                const j = await verify.json();
+                if (j.ok) location.href = '/passkeys'; else alert('Registrierung fehlgeschlagen');
+            });
+*** End Patch

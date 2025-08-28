@@ -106,3 +106,67 @@ export async function getAllUsers() {
     }
     return users;
 }
+
+// ------------------- WebAuthn / Passkey support -------------------
+// Credentials are stored per user. We store a set of credential IDs and a hash per credential
+// Key patterns:
+// guard:user:{uuid}:credentials -> set of credentialId (base64url)
+// guard:user:{uuid}:cred:{credId} -> hash with fields id, publicKey, signCount, transports, name, lastUsed
+
+export function addCredential(uuid, credId, metadata) {
+    const idEsc = escape(credId);
+    const base = "guard:user:" + escape(uuid) + ":cred:" + idEsc;
+    // metadata fields: publicKey (string), signCount (number), transports (json string), name (optional)
+    const multi = [];
+    for (const [k, v] of Object.entries(metadata)) {
+        multi.push([k, typeof v === 'string' ? v : JSON.stringify(v)]);
+    }
+    // hm redis client v4 doesn't support multi as array of arrays for hSet easily; use hSet then sadd
+    return rc.hSet(base, metadata).then(() => {
+        return rc.sAdd("guard:user:" + escape(uuid) + ":credentials", credId);
+    });
+}
+
+export async function getCredentials(uuid) {
+    const ids = await rc.sMembers("guard:user:" + escape(uuid) + ":credentials");
+    const creds = [];
+    for (const id of ids) {
+        const data = await rc.hGetAll("guard:user:" + escape(uuid) + ":cred:" + escape(id));
+        if (Object.keys(data).length === 0) continue;
+        creds.push({
+            id: data.id || id,
+            publicKey: data.publicKey,
+            signCount: data.signCount ? Number(data.signCount) : 0,
+            transports: data.transports ? JSON.parse(data.transports) : [],
+            name: data.name || null,
+            lastUsed: data.lastUsed ? Number(data.lastUsed) : null
+        });
+    }
+    return creds;
+}
+
+export function getCredential(uuid, credId) {
+    return rc.hGetAll("guard:user:" + escape(uuid) + ":cred:" + escape(credId)).then(data => {
+        if (!data || Object.keys(data).length === 0) return null;
+        return {
+            id: data.id,
+            publicKey: data.publicKey,
+            signCount: data.signCount ? Number(data.signCount) : 0,
+            transports: data.transports ? JSON.parse(data.transports) : [],
+            name: data.name || null,
+            lastUsed: data.lastUsed ? Number(data.lastUsed) : null
+        }
+    });
+}
+
+export function deleteCredential(uuid, credId) {
+    return rc.del("guard:user:" + escape(uuid) + ":cred:" + escape(credId)).then(() => {
+        return rc.sRem("guard:user:" + escape(uuid) + ":credentials", credId);
+    });
+}
+
+export function updateSignCount(uuid, credId, signCount) {
+    return rc.hSet("guard:user:" + escape(uuid) + ":cred:" + escape(credId), "signCount", String(signCount)).then(() => {
+        return rc.hSet("guard:user:" + escape(uuid) + ":cred:" + escape(credId), "lastUsed", String(Date.now()));
+    });
+}

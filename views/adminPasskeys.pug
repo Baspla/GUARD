@@ -1,0 +1,31 @@
+extends layout
+
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+
+block content
+  .align-self-center.neumorph.px-5.py-4
+    h1.fs-1.mt-2.mb-3 Admin: Passkeys von #{username || uuid}
+    p UUID: #{uuid}
+    if credentials.length == 0
+        p Kein Passkey registriert.
+    else
+        table.table.table-striped.w-full.text-left.border-collapse
+          thead
+            tr
+              th ID
+              th Name
+              th SignCount
+              th LastUsed
+              th Aktionen
+          tbody
+            each cred in credentials
+              tr
+                td= cred.id
+                td= cred.name || '-'
+                td= cred.signCount
+                td= cred.lastUsed ? new Date(cred.lastUsed).toLocaleString() : '-'
+                td
+                  form(method='post', action=`/admin/passkeys/${encodeURIComponent(uuid)}/${encodeURIComponent(cred.id)}/delete`)
+                    button.btn.btn-outline-danger(type='submit') Löschen
+*** End Patch
