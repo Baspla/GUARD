@@ -28,7 +28,12 @@ export async function hash(password) {
 }
 
 export async function verifyHash(password, storedHash) {
-    return await argon2.verify(storedHash, password);
+    try {
+        return await argon2.verify(storedHash, password);
+    } catch (err) {
+        console.error('Error verifying hash:', err);
+        return false;
+    }
 }
 
 export function getUUIDByUsername(username) {
