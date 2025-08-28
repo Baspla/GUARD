@@ -1,4 +1,3 @@
-
 FROM oven/bun:latest
 
 
@@ -6,7 +5,7 @@ WORKDIR /usr/src/app
 
 
 # Install dependencies
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN bun install
 
 
