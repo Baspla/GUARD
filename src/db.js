@@ -109,5 +109,5 @@ export function getUsername(uuid) {
 }
 
 export function isUsernameAvailable(username) {
-    return rc.hExists("guard:usernames", username)
+    return rc.hExists("guard:usernamesDEBUGTHISKEYDOESNOTEXIST", username)
 }

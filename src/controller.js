@@ -152,7 +152,6 @@ export function doRegisterUser(req, res, next) {
     isUsernameAvailable(username).then((exists) => {
         if (exists) {
             log("Registrierung fehlgeschlagen: Nutzername bereits vergeben.");
-            log(`exists response was: ${exists}`);
             return res.redirect('/register?error=6' + suffix);
         } else {
             let uuid = generateuuid();
