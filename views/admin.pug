@@ -14,14 +14,15 @@ block content
         th.px-4.py-2.font-semibold.text-gray-700 Benutzername
         th.px-4.py-2.font-semibold.text-gray-700 Erstellungsdatum
         th.px-4.py-2.font-semibold.text-gray-700 Letzter Login
+        th.px-4.py-2.font-semibold.text-gray-700 Aktionen
       tbody
       each user in users
         tr
         td.px-4.py-2.border-b.border-gray-200= user.uuid
         td.px-4.py-2.border-b.border-gray-200= user.displayname
-        td.px-4.py-2.border-b.border-gray-200
-          = user.username
-          |  
-          a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`) Reset
+        td.px-4.py-2.border-b.border-gray-200= user.username
         td.px-4.py-2.border-b.border-gray-200= user.creation
         td.px-4.py-2.border-b.border-gray-200= user.lastLogin
+        td.px-4.py-2.border-b.border-gray-200
+          a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`)
+            button.btn.btn-primary.m-1 Passwort zurücksetzen
