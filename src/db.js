@@ -1,7 +1,7 @@
 // noinspection JSCheckFunctionSignatures
 
 import * as redis from "redis";
-import * as crypto from "crypto";
+import argon2 from "argon2";
 
 const rc = redis.createClient({
     socket: {
@@ -23,16 +23,12 @@ export async function startDB() {
     return rc.connect()
 }
 
-export function hash(password) {
-    const salt = crypto.randomBytes(16).toString('base64');
-    const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
-    return `${salt}:${hash}`;
+export async function hash(password) {
+    return await argon2.hash(password, { type: argon2.argon2id });
 }
 
-export function verifyHash(password, storedHash) {
-    const [salt, hash] = storedHash.split(':');
-    const hashedInput = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
-    return hash === hashedInput;
+export async function verifyHash(password, storedHash) {
+    return await argon2.verify(storedHash, password);
 }
 
 export function getUUIDByToken(token) {
