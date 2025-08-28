@@ -12,48 +12,50 @@ import {
 import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.js";
 
 export function login(req, res) {
-    const {returnURL, error} = req.query;
+    const {redirect_uri, error, state} = req.query;
     if (isLoggedIn(req)) {
-        if (returnURL == null) { // Nutzer ist bereits eingeloggt ohne ServiceURL
+        if (redirect_uri == null) { // Nutzer ist bereits eingeloggt ohne ServiceURL
             return res.redirect("/");
         } else { // Nutzer ist bereits eingeloggt mit ServiceURL
             let hostname
             try {
-                const url = new URL(returnURL)
+                const url = new URL(redirect_uri)
                 hostname = url.hostname
             } catch (e) {
-                let err = new Error("Die angegebene returnURL ist ungültig.")
+                let err = new Error("Die angegebene redirect_uri ist ungültig.")
                 err.status = 400
                 throw err
             }
             return getUsername(req.session.uuid).then(username => {
                 return res.render('prompt', {
                     username: username,
-                    returnURL: returnURL,
+                    redirect_uri: redirect_uri,
                     hostname: hostname,
                     error: error,
+                    state: state,
                     title: "Bestätigen"
                 });
             })
         }
     } else {
-        if (returnURL == null) { // Nutzer ist nicht eingeloggt ohne ServiceURL
-            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden"});
+        if (redirect_uri == null) { // Nutzer ist nicht eingeloggt ohne ServiceURL
+            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state});
         } else { // Nutzer ist nicht eingeloggt mit ServiceURL
             let hostname
             try {
-                const url = new URL(returnURL)
+                const url = new URL(redirect_uri)
                 hostname = url.hostname
             } catch (e) {
-                let err = new Error("Die angegebene returnURL ist ungültig.")
+                let err = new Error("Die angegebene redirect_uri ist ungültig.")
                 err.status = 400
                 throw err
             }
             return res.render("login", {
-                registerSuffix: "?returnURL=" + returnURL,
+                registerSuffix: "?redirect_uri=" + redirect_uri + (state ? "&state=" + encodeURIComponent(state) : ""),
                 error: error,
                 hostname: hostname,
-                title: "Anmelden"
+                title: "Anmelden",
+                state: state
             });
         }
     }
@@ -61,10 +63,12 @@ export function login(req, res) {
 }
 
 export function logout(req, res) {
-    const {returnURL} = req.query;
+    const {redirect_uri, state} = req.query;
     req.session.destroy();
-    if (returnURL != null) {
-        return res.redirect('/login?returnURL=' + returnURL);
+    if (redirect_uri != null) {
+        let suffix = '/login?redirect_uri=' + encodeURIComponent(redirect_uri);
+        if (state) suffix += '&state=' + encodeURIComponent(state);
+        return res.redirect(suffix);
     }
     res.render('logout', {title: "Abgemeldet"})
 }
@@ -74,16 +78,19 @@ export function registerUser(req, res) {
     if (isLoggedIn(req)) {
         return res.redirect('/')
     }
-    const {error} = req.query;
-    return res.render("register", {error: error, title: "Registrieren"});
+    const {error, state, redirect_uri} = req.query;
+    return res.render("register", {error: error, title: "Registrieren", state: state, redirect_uri: redirect_uri});
 }
 
 export function doRegisterUser(req, res, next) {
     const {username, password, passwordRepeat, displayname,secret} = req.body;
-    const {returnURL} = req.query;
+    const {redirect_uri, state} = req.query;
     let suffix = "";
-    if (returnURL != null) {
-        suffix = "&returnURL=" + returnURL;
+    if (redirect_uri != null) {
+        suffix = "&redirect_uri=" + encodeURIComponent(redirect_uri);
+    }
+    if (state) {
+        suffix += "&state=" + encodeURIComponent(state);
     }
     if (secret !== process.env.REGISTER_SECRET) {
         return res.redirect('/register?error=12' + suffix);
@@ -123,23 +130,24 @@ export function doRegisterUser(req, res, next) {
 }
 
 function registerTokenAndRedirect(req, res, returnURL) {
-    let id = generateuuid();
-    console.debug("Generated token: " + id + " for user: " + req.session.uuid + " and returnURL: " + returnURL);
-    storeToken(req.session.uuid, id).then(() => {
-        var url = new URL(returnURL);
-        url.searchParams.append('GUARDTOKEN', id);
-        res.redirect(url);
-    })
+        let id = generateuuid();
+        console.debug("Generated token: " + id + " for user: " + req.session.uuid + " and redirect_uri: " + returnURL);
+        storeToken(req.session.uuid, id).then(() => {
+            var url = new URL(returnURL);
+            url.searchParams.append('code', id);
+            if (state) url.searchParams.append('state', state);
+            res.redirect(url);
+        })
 }
 
-export function sso(req, res) {
-    const {GUARDTOKEN} = req.query;
-    if (GUARDTOKEN == null) {
-        return res.status(400).json({error: "GUARDTOKEN fehlt.", code: 400})
+export function token(req, res) {
+    const {code} = req.query;
+    if (code == null) {
+        return res.status(400).json({error: "code fehlt.", code: 400})
     }
-    getUUIDByToken(GUARDTOKEN).then((uuid) => {
+    getUUIDByToken(code).then((uuid) => {
         if (uuid == null) {
-            return res.status(400).json({error: "GUARDTOKEN ist ungültig.", code: 400})
+            return res.status(400).json({error: "code ist ungültig.", code: 400})
         }
         getDisplayname(uuid).then((displayname) => {
             if (displayname == null) {
@@ -168,18 +176,19 @@ function isLoggedIn(req) {
 }
 
 export function dashboard(req, res) {
-    const {returnURL, error} = req.query;
+    const {redirect_uri, error, state} = req.query;
     if (!isLoggedIn(req)) {
-        if (returnURL == null) {
-            return res.redirect('/login');
-        } else {
-            return res.redirect('/login?returnURL=' + returnURL);
+        let suffix = '/login';
+        if (redirect_uri) {
+            suffix += '?redirect_uri=' + encodeURIComponent(redirect_uri);
+            if (state) suffix += '&state=' + encodeURIComponent(state);
         }
+        return res.redirect(suffix);
     }
     let uname = getUsername(req.session.uuid)
     let dname = getDisplayname(req.session.uuid)
     Promise.all([uname, dname]).then((values) => {
-        res.render('dashboard', {username: values[0], displayname: values[1], error: error, title: "Dashboard"});
+        res.render('dashboard', {username: values[0], displayname: values[1], error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
     })
 }
 
@@ -271,43 +280,59 @@ export function doPasswordchange(req, res) {
 
 export function doLogin(req, res) {
     const {username, password, confirmed} = req.body;
-    const {returnURL} = req.query;
+    const {redirect_uri, state} = req.query;
     if ((username == null || password == null) && confirmed !== "true") {
-        if (returnURL != null) {
-            res.redirect('/login?error=1')
-        } else {
-            res.redirect('/login?error=1&returnURL=' + returnURL)
+        let suffix = '/login?error=1';
+        if (redirect_uri) {
+            suffix += '&redirect_uri=' + encodeURIComponent(redirect_uri);
         }
+        if (state) {
+            suffix += '&state=' + encodeURIComponent(state);
+        }
+        return res.redirect(suffix);
     }
     if (confirmed === "true") {
         if (isLoggedIn(req)) {
-            return registerTokenAndRedirect(req, res, returnURL)
+            return registerTokenAndRedirect(req, res, redirect_uri, state)
         } else {
-            return res.redirect('/login?error=1')
+            let suffix = '/login?error=1';
+            if (redirect_uri) {
+                suffix += '&redirect_uri=' + encodeURIComponent(redirect_uri);
+            }
+            if (state) {
+                suffix += '&state=' + encodeURIComponent(state);
+            }
+            return res.redirect(suffix);
         }
     } else {
         getUUIDByUsername(username).then((uuid) => {
             if (uuid == null) {
-                if (returnURL == null) {
-                    return res.redirect('/login?error=2')
-                } else {
-                    return res.redirect('/login?error=2&returnURL=' + returnURL)
+                let suffix = '/login?error=2';
+                if (redirect_uri) {
+                    suffix += '&redirect_uri=' + encodeURIComponent(redirect_uri);
                 }
+                if (state) {
+                    suffix += '&state=' + encodeURIComponent(state);
+                }
+                return res.redirect(suffix);
             }
             checkPassword(uuid, password).then((result) => {
                 if (result) {
                     req.session.uuid = uuid;
-                    if (returnURL != null) {
-                        return registerTokenAndRedirect(req, res, returnURL)
+                    if (redirect_uri != null) {
+                        return registerTokenAndRedirect(req, res, redirect_uri, state)
                     } else {
                         return res.redirect("/");
                     }
                 } else {
-                    if (returnURL == null) {
-                        return res.redirect('/login?error=2')
-                    } else {
-                        return res.redirect('/login?error=2&returnURL=' + returnURL)
+                    let suffix = '/login?error=2';
+                    if (redirect_uri) {
+                        suffix += '&redirect_uri=' + encodeURIComponent(redirect_uri);
                     }
+                    if (state) {
+                        suffix += '&state=' + encodeURIComponent(state);
+                    }
+                    return res.redirect(suffix);
                 }
             })
         })

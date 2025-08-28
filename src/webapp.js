@@ -14,7 +14,7 @@ import {
     usernamechange,
     displaynamechange,
     registerUser,
-    sso,
+    token,
     doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
 } from "./controller.js";
 import * as bodyParser from "express";
@@ -66,7 +66,7 @@ webapp.get('/passwordchange', passwordchange)
 webapp.post('/displaynamechange', doDisplaynamechange)
 webapp.post('/usernamechange', doUsernamechange)
 webapp.post('/passwordchange', doPasswordchange)
-webapp.get('/sso',sso)
+webapp.get('/token', token)
 
 webapp.get('/login', login)
 
