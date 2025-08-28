@@ -1,4 +1,3 @@
-
 # GUARD
 
 **GUARD** ist ein leichtgewichtiges Single-Sign-On (SSO) System für eigene Projekte. Es bietet eine einfache Authentifizierung und Benutzerverwaltung für verschiedene Webanwendungen.
@@ -17,14 +16,28 @@
 
 ## Endpunkte
 
-| Route                | Beschreibung                                      |
-|----------------------|---------------------------------------------------|
+| Route                | Beschreibung                                       |
+|----------------------|----------------------------------------------------|
 | `/login`             | Login-Seite, unterstützt `redirect_uri` und `state`|
-| `/register`          | Registrierung eines neuen Benutzers               |
-| `/logout`            | Abmelden                                          |
-| `/dashboard`         | Benutzer-Dashboard                                |
-| `/token?code=...`    | Token-Validierung und Benutzerdaten abrufen       |
-| `/info?uuid=...`     | Benutzerinformationen per UUID abrufen            |
+| `/register`          | Registrierung eines neuen Benutzers                |
+| `/logout`            | Abmelden                                           |
+| `/dashboard`         | Benutzer-Dashboard                                 |
+| `/token?code=...`    | Token-Validierung und Benutzerdaten abrufen        |
+| `/info?uuid=...`     | Benutzerinformationen per UUID abrufen             |
+| `/admin`             | Admin-Panel für Benutzerverwaltung                 |
+
+## Umgebungsvariablen
+
+Folgende Umgebungsvariablen werden von GUARD verwendet:
+
+| Variable         | Beschreibung                                      |
+|------------------|---------------------------------------------------|
+| `SECRET`         | Session-Secret für express-session                |
+| `REDIS_HOST`     | Hostname/IP des Redis-Servers                     |
+| `REDIS_PORT`     | Port des Redis-Servers                            |
+| `REGISTER_SECRET`| Secret für die Registrierung                      |
+| `JWT_SECRET`     | Secret für die Signierung der JSON Web Tokens     |
+| `ADMIN_UUID`     | UUID des Admin-Benutzers für die Admin-Seite      |
 
 ## Integration
 

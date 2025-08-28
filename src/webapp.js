@@ -1,3 +1,5 @@
+import { admin } from "./controller.js";
+webapp.get('/admin', admin)
 import express from "express";
 import session from 'express-session'
 import cookieParser from 'cookie-parser';

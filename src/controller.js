@@ -1,3 +1,12 @@
+import { getAllUsers } from "./db.js";
+export async function admin(req, res) {
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const users = await getAllUsers();
+    res.render('admin', {users, title: "Admin"});
+}
 // noinspection SpellCheckingInspection
 
 import {v4 as generateuuid} from "uuid";
@@ -7,7 +16,8 @@ import {
     isUsernameAvailable,
     setDisplayname, setPassword, setUsername,
     storeToken,
-    storeUser
+    storeUser,
+    updateLastLogin
 } from "./db.js";
 import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.js";
 
@@ -130,14 +140,12 @@ export function doRegisterUser(req, res, next) {
 }
 
 function registerTokenAndRedirect(req, res, returnURL) {
-        let id = generateuuid();
-        console.debug("Generated token: " + id + " for user: " + req.session.uuid + " and redirect_uri: " + returnURL);
-        storeToken(req.session.uuid, id).then(() => {
-            var url = new URL(returnURL);
-            url.searchParams.append('code', id);
-            if (state) url.searchParams.append('state', state);
-            res.redirect(url);
-        })
+    // JWT mit uuid als Payload
+    const token = signToken({ uuid: req.session.uuid });
+    var url = new URL(returnURL);
+    if (typeof state !== 'undefined') url.searchParams.append('state', state);
+    url.searchParams.append('code', token);
+    res.redirect(url);
 }
 
 export function token(req, res) {
@@ -145,17 +153,16 @@ export function token(req, res) {
     if (code == null) {
         return res.status(400).json({error: "code fehlt.", code: 400})
     }
-    getUUIDByToken(code).then((uuid) => {
-        if (uuid == null) {
+        const payload = verifyToken(code);
+        if (!payload || !payload.uuid) {
             return res.status(400).json({error: "code ist ungültig.", code: 400})
         }
-        getDisplayname(uuid).then((displayname) => {
+        getDisplayname(payload.uuid).then((displayname) => {
             if (displayname == null) {
                 return res.status(400).json({error: "UUID ist ungültig.", code: 400})
             }
-            res.status(200).json({uuid: uuid, displayname: displayname})
+            res.status(200).json({uuid: payload.uuid, displayname: displayname})
         })
-    })
 }
 
 export function getInformation(req, res) {
@@ -319,6 +326,7 @@ export function doLogin(req, res) {
             checkPassword(uuid, password).then((result) => {
                 if (result) {
                     req.session.uuid = uuid;
+                    updateLastLogin(uuid);
                     if (redirect_uri != null) {
                         return registerTokenAndRedirect(req, res, redirect_uri, state)
                     } else {

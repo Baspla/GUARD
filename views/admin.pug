@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1 Admin: Nutzerübersicht
+  table.table.table-striped
+    thead
+      tr
+        th UUID
+        th Displayname
+        th Erstellungsdatum
+        th Letzter Login
+    tbody
+      each user in users
+        tr
+          td= user.uuid
+          td= user.displayname
+          td= user.creation
+          td= user.lastLogin

@@ -1,3 +1,19 @@
+export async function getAllUsers() {
+    const rc = await getRedisClient();
+    const usernames = await rc.hGetAll("guard:usernames");
+    const uuids = Object.values(usernames);
+    const users = [];
+    for (const uuid of uuids) {
+        const data = await rc.hGetAll("guard:user:" + escape(uuid));
+        users.push({
+            uuid,
+            displayname: data.displayname,
+            creation: data.creation ? new Date(Number(data.creation)).toLocaleString() : "",
+            lastLogin: data.lastLogin ? new Date(Number(data.lastLogin)).toLocaleString() : ""
+        });
+    }
+    return users;
+}
 // noinspection JSCheckFunctionSignatures
 
 import * as redis from "redis";
@@ -73,16 +89,20 @@ export function setPassword(uuid, password) {
 }
 
 export function storeUser(uuid, username, password, displayname) {
-    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password)).then(() => {
-        return rc.hSet("guard:user:" + escape(uuid), "displayname", displayname).then(() => {
-            return rc.hSet("guard:user:" + escape(uuid), "username", username).then(
-                () => {
-                    return rc.hSet("guard:usernames", username, uuid)
-                }
-            )
-        })
-    })
+    const now = Date.now();
+    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password))
+        .then(() => rc.hSet("guard:user:" + escape(uuid), "displayname", displayname))
+        .then(() => rc.hSet("guard:user:" + escape(uuid), "username", username))
+        .then(() => rc.hSet("guard:usernames", username, uuid))
+        .then(() => rc.hSet("guard:user:" + escape(uuid), "creation", now))
+        .then(() => rc.hSet("guard:user:" + escape(uuid), "lastLogin", now));
+
 }
+
+export function updateLastLogin(uuid) {
+    return rc.hSet("guard:user:" + escape(uuid), "lastLogin", Date.now());
+}
+
 
 export function getUsername(uuid) {
     return rc.hGet("guard:user:" + escape(uuid), "username")
