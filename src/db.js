@@ -24,7 +24,15 @@ export async function startDB() {
 }
 
 export function hash(password) {
-    return crypto.createHash('sha256').update(password).digest('base64');
+    const salt = crypto.randomBytes(16).toString('base64');
+    const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
+    return `${salt}:${hash}`;
+}
+
+export function verifyHash(password, storedHash) {
+    const [salt, hash] = storedHash.split(':');
+    const hashedInput = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('base64');
+    return hash === hashedInput;
 }
 
 export function getUUIDByToken(token) {
@@ -38,7 +46,7 @@ export function getUUIDByUsername(username) {
 export function checkPassword(uuid, password) {
     return rc.hGet("guard:user:" + escape(uuid), "password").then(value => {
         if (value !== undefined && value !== null) {
-            return value === hash(uuid + password)
+            return verifyHash(uuid + password, value);
         }
         return false
     })
