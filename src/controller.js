@@ -125,11 +125,7 @@ export function doRegisterUser(req, res, next) {
             storeUser(uuid, username, password, displayname).then(() => {
                 console.log("Registered user: " + username + " with UUID: " + uuid + " and displayname: " + displayname);
                 req.session.uuid = uuid;
-                if (returnURL == null) {
-                    return res.redirect('/login');
-                } else {
-                    return res.redirect('/login?returnURL=' + returnURL);
-                }
+                return res.redirect('/login' + suffix);
             }).catch((err) => {
                 next(err);
             });
@@ -139,10 +135,10 @@ export function doRegisterUser(req, res, next) {
     });
 }
 
-function registerTokenAndRedirect(req, res, returnURL) {
+function registerTokenAndRedirect(req, res, redirect_uri, state) {
     // JWT mit uuid als Payload
     const token = signToken({ uuid: req.session.uuid });
-    var url = new URL(returnURL);
+    var url = new URL(redirect_uri);
     if (typeof state !== 'undefined') url.searchParams.append('state', state);
     url.searchParams.append('code', token);
     res.redirect(url);
