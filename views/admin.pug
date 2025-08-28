@@ -1,18 +1,22 @@
 extends layout
 
+block append css
+    link(rel='stylesheet', href='/sheets/neumorph.css')
+
 block content
-  h1 Admin: Nutzerübersicht
-  table.table.table-striped
-    thead
+  .align-self-center.neumorph.px-5.py-4
+    h1.fs-1.mt-2.mb-3 Admin: Nutzerübersicht
+    table.table.table-striped.w-full.text-left.border-collapse
+      thead.bg-gray-100
       tr
-        th UUID
-        th Displayname
-        th Erstellungsdatum
-        th Letzter Login
-    tbody
+        th.px-4.py-2.font-semibold.text-gray-700 UUID
+        th.px-4.py-2.font-semibold.text-gray-700 Displayname
+        th.px-4.py-2.font-semibold.text-gray-700 Erstellungsdatum
+        th.px-4.py-2.font-semibold.text-gray-700 Letzter Login
+      tbody
       each user in users
         tr
-          td= user.uuid
-          td= user.displayname
-          td= user.creation
-          td= user.lastLogin
+        td.px-4.py-2.border-b.border-gray-200= user.uuid
+        td.px-4.py-2.border-b.border-gray-200= user.displayname
+        td.px-4.py-2.border-b.border-gray-200= user.creation
+        td.px-4.py-2.border-b.border-gray-200= user.lastLogin
