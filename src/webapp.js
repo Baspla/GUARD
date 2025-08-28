@@ -1,5 +1,4 @@
 import { admin } from "./controller.js";
-webapp.get('/admin', admin)
 import express from "express";
 import session from 'express-session'
 import cookieParser from 'cookie-parser';
@@ -37,6 +36,7 @@ webapp.use(session({
 
 webapp.set('view engine', 'pug')
 webapp.set('views', __dirname + '/../views')
+webapp.get('/admin', admin)
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
 webapp.use('/js', express.static(__dirname + '/../node_modules/bootstrap/dist/js'))
 webapp.use('/favicon.ico', express.static(__dirname + '/../public/images/favicon.ico'))
