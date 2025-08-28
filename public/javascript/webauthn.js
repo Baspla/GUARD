@@ -73,4 +73,3 @@ export async function performGet(opts) {
 // expose helpers to window for inline usage in pug
 window.performCreate = performCreate;
 window.performGet = performGet;
-*** End Patch
