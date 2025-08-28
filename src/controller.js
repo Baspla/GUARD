@@ -21,6 +21,51 @@ export async function admin(req, res) {
     res.render('admin', {users, title: "Admin"});
 }
 
+export async function adminPasskeysView(req, res) {
+    log(`AdminPasskeys-View aufgerufen von UUID: ${req.session.uuid}`);
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        log(`AdminPasskeys Zugriff verweigert für UUID: ${req.session.uuid}`);
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { uuid } = req.params;
+    if (!uuid) {
+        log('AdminPasskeys Fehler: uuid fehlt in URL');
+        return res.redirect('/admin');
+    }
+    try {
+        const creds = await getCredentials(uuid);
+        const displayname = await getDisplayname(uuid);
+        const username = await getUsername(uuid);
+        res.render('adminPasskeys', { uuid, displayname, username, credentials: creds, title: `Passkeys von ${username || uuid}` });
+    } catch (err) {
+        log(`AdminPasskeys Fehler: ${err}`);
+        return res.redirect('/admin');
+    }
+}
+
+export async function doAdminDeletePasskey(req, res) {
+    log(`AdminDeletePasskey aufgerufen von UUID: ${req.session.uuid}`);
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        log(`AdminDeletePasskey Zugriff verweigert für UUID: ${req.session.uuid}`);
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { uuid, id } = req.params;
+    if (!uuid || !id) {
+        log('AdminDeletePasskey Fehler: fehlende Parameter');
+        return res.redirect('/admin');
+    }
+    try {
+        await deleteCredential(uuid, id);
+        log(`AdminDeletePasskey erfolgreich: ${id} von ${uuid}`);
+        return res.redirect(`/admin/passkeys/${encodeURIComponent(uuid)}`);
+    } catch (err) {
+        log(`AdminDeletePasskey Fehler: ${err}`);
+        return res.redirect('/admin');
+    }
+}
+
 // Admin: Passwort zurücksetzen (Formular)
 export function adminPasswordResetView(req, res) {
     const { username } = req.params;
@@ -93,7 +138,21 @@ import {
     storeUser,
     updateLastLogin
 } from "./db.js";
+import {
+    addCredential,
+    getCredentials,
+    getCredential,
+    deleteCredential,
+    updateSignCount
+} from "./db.js";
 import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.js";
+import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
+import base64url from 'base64url';
+
+export function passkeysRegisterView(req, res) {
+    if (!isLoggedIn(req)) return res.redirect('/');
+    res.render('passkeys_register', { title: 'Passkey registrieren' });
+}
 
 export function login(req, res) {
     const {redirect_uri, error, state} = req.query;
@@ -283,6 +342,150 @@ export function getInformation(req, res) {
 
 function isLoggedIn(req) {
     return req.session.uuid != null;
+}
+
+// WebAuthn / Passkey helpers
+const rpName = process.env.RP_NAME || 'GUARD SSO';
+const rpID = process.env.RP_ID || undefined; // use host if undefined
+const origin = process.env.ORIGIN || undefined; // must be set in env for verification
+
+export function passkeysRegisterOptions(req, res) {
+    if (!isLoggedIn(req)) return res.status(403).send('Forbidden');
+    const userHandle = req.session.uuid;
+    const usernamePromise = getUsername(userHandle);
+    usernamePromise.then(username => {
+        const opts = generateRegistrationOptions({
+            rpName: rpName,
+            rpID: rpID,
+            userID: userHandle,
+            userName: username || userHandle,
+            attestationType: 'none',
+            authenticatorSelection: { userVerification: 'preferred' },
+            // excludeCredentials should be built from existing credentials
+            // We'll fill it below after reading creds
+        });
+        // store challenge in session
+        req.session.currentChallenge = opts.challenge;
+        // attach empty allowCredentials for client; server may fill exclude on client side
+        res.json(opts);
+    }).catch(err => {
+        log('passkeysRegisterOptions Fehler: ' + err);
+        res.status(500).send('DB error');
+    });
+}
+
+export async function passkeysVerifyRegistration(req, res) {
+    if (!isLoggedIn(req)) return res.status(403).send('Forbidden');
+    const body = req.body;
+    const expectedChallenge = req.session.currentChallenge;
+    if (!expectedChallenge) return res.status(400).json({ error: 'challenge missing' });
+    let verification;
+    try {
+        verification = await verifyRegistrationResponse({
+            credential: body,
+            expectedChallenge: expectedChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+        });
+    } catch (e) {
+        log('verifyRegistration error: ' + e);
+        return res.status(400).json({ error: 'verification failed' });
+    }
+    const { verified, registrationInfo } = verification;
+    if (!verified || !registrationInfo) {
+        return res.status(400).json({ error: 'not verified' });
+    }
+    const credID = registrationInfo.credentialID.toString('base64url');
+    const publicKey = registrationInfo.credentialPublicKey.toString('base64');
+    const signCount = registrationInfo.counter || 0;
+    const transports = body.transports || [];
+    const name = body.name || null;
+    await addCredential(req.session.uuid, credID, { id: credID, publicKey: publicKey, signCount: String(signCount), transports: JSON.stringify(transports), name: name, lastUsed: String(Date.now()) });
+    delete req.session.currentChallenge;
+    res.json({ ok: true });
+}
+
+export async function passkeysAuthOptions(req, res) {
+    // For login: either user is known (session) or username provided in query/body
+    let username = null;
+    let userUUID = null;
+    if (isLoggedIn(req)) {
+        userUUID = req.session.uuid;
+    } else if (req.query.username) {
+        userUUID = await getUUIDByUsername(req.query.username);
+        if (!userUUID) return res.status(400).json({ error: 'unknown user' });
+    } else {
+        return res.status(400).json({ error: 'no user provided' });
+    }
+    const creds = await getCredentials(userUUID);
+    const allowCredentials = creds.map(c => ({ id: base64url.toBuffer(c.id), type: 'public-key' }));
+    const opts = generateAuthenticationOptions({
+        timeout: 60000,
+        allowCredentials: allowCredentials,
+        userVerification: 'preferred',
+        rpID: rpID
+    });
+    req.session.currentChallenge = opts.challenge;
+    // store which user this challenge is for if not logged in
+    req.session.currentChallengeUser = userUUID;
+    res.json(opts);
+}
+
+export async function passkeysVerifyAuth(req, res) {
+    const body = req.body;
+    const expectedChallenge = req.session.currentChallenge;
+    const userUUID = req.session.currentChallengeUser || req.session.uuid;
+    if (!expectedChallenge || !userUUID) return res.status(400).json({ error: 'missing challenge or user' });
+    const cred = await getCredential(userUUID, body.id);
+    if (!cred) return res.status(400).json({ error: 'unknown credential' });
+    let verification;
+    try {
+        verification = await verifyAuthenticationResponse({
+            credential: body,
+            expectedChallenge: expectedChallenge,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+            authenticator: {
+                credentialPublicKey: Buffer.from(cred.publicKey, 'base64'),
+                credentialID: base64url.toBuffer(cred.id),
+                counter: cred.signCount || 0,
+            }
+        });
+    } catch (e) {
+        log('verifyAuthentication error: ' + e);
+        return res.status(400).json({ error: 'verification failed' });
+    }
+    const { verified, authenticationInfo } = verification;
+    if (!verified) return res.status(400).json({ error: 'not verified' });
+    // check counter
+    if (authenticationInfo && typeof authenticationInfo.newCounter === 'number') {
+        if (authenticationInfo.newCounter <= (cred.signCount || 0)) {
+            log(`Potential cloned credential for user ${userUUID} cred ${cred.id}`);
+            // Do not authenticate, but allow admin investigation. For now, reject.
+            return res.status(400).json({ error: 'counter regression' });
+        }
+        await updateSignCount(userUUID, cred.id, authenticationInfo.newCounter);
+    }
+    // Authentication successful -> set session
+    req.session.uuid = userUUID;
+    updateLastLogin(userUUID);
+    delete req.session.currentChallenge;
+    delete req.session.currentChallengeUser;
+    res.json({ ok: true });
+}
+
+export async function passkeysListView(req, res) {
+    if (!isLoggedIn(req)) return res.redirect('/');
+    const creds = await getCredentials(req.session.uuid);
+    res.render('passkeys', { credentials: creds, title: 'Passkeys verwalten' });
+}
+
+export async function passkeysDelete(req, res) {
+    if (!isLoggedIn(req)) return res.status(403).send('Forbidden');
+    const { id } = req.params;
+    if (!id) return res.status(400).send('Missing id');
+    await deleteCredential(req.session.uuid, id);
+    res.redirect('/passkeys');
 }
 
 export function dashboard(req, res) {

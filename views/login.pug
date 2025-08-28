@@ -16,6 +16,20 @@ block content
             input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
             a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
             button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
+        // Passkey Login
+        button.btn.btn-outline-primary.m-1#passkeyLogin(type="button") Mit Passkey anmelden
+        script(src='/scripts/webauthn.js')
+        script.
+            document.getElementById('passkeyLogin').addEventListener('click', async function(){
+                const username = document.getElementById('username').value;
+                const res = await fetch('/passkeys/auth/options?username=' + encodeURIComponent(username));
+                const opts = await res.json();
+                // webauthn client
+                const assertion = await window.performGet(opts);
+                const verify = await fetch('/passkeys/auth/verify', {method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(assertion)});
+                const j = await verify.json();
+                if (j.ok) location.reload(); else alert('Passkey Login fehlgeschlagen: ' + (j.error||''));
+            });
                 //|
                 //|
                 //svg.bi.bi-key(xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16")

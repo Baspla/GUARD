@@ -19,6 +19,8 @@ import {
     doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
 } from "./controller.js";
 import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
+import { passkeysRegisterOptions, passkeysVerifyRegistration, passkeysAuthOptions, passkeysVerifyAuth, passkeysListView, passkeysDelete } from "./controller.js";
+import { passkeysRegisterView } from "./controller.js";
 import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -55,6 +57,8 @@ webapp.get('/', dashboard)
 webapp.get('/admin', admin)
 webapp.get('/admin/passwordreset/:username', adminPasswordResetView)
 webapp.post('/admin/passwordreset/:username', doAdminPasswordReset)
+webapp.get('/admin/passkeys/:uuid', adminPasskeysView)
+webapp.post('/admin/passkeys/:uuid/:id/delete', doAdminDeletePasskey)
 
 webapp.get('/info', getInformation)
 
@@ -73,6 +77,15 @@ webapp.post('/displaynamechange', doDisplaynamechange)
 webapp.post('/usernamechange', doUsernamechange)
 webapp.post('/passwordchange', doPasswordchange)
 webapp.get('/token', token)
+
+// Passkey / WebAuthn routes
+webapp.get('/passkeys/register/options', passkeysRegisterOptions)
+webapp.get('/passkeys/register', passkeysRegisterView)
+webapp.post('/passkeys/register/verify', passkeysVerifyRegistration)
+webapp.get('/passkeys/auth/options', passkeysAuthOptions)
+webapp.post('/passkeys/auth/verify', passkeysVerifyAuth)
+webapp.get('/passkeys', passkeysListView)
+webapp.post('/passkeys/:id/delete', passkeysDelete)
 
 webapp.get('/login', login)
 
