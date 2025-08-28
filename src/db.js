@@ -67,19 +67,21 @@ export function setUsername(uuid, username) {
     })
 }
 
-export function setPassword(uuid, password) {
-    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password))
+export async function setPassword(uuid, password) {
+    const hashed = await hash(uuid + password);
+    return rc.hSet("guard:user:" + escape(uuid), "password", hashed);
 }
 
-export function storeUser(uuid, username, password, displayname) {
+export async function storeUser(uuid, username, password, displayname) {
     const now = Date.now();
-    return rc.hSet("guard:user:" + escape(uuid), "password", hash(uuid + password))
-        .then(() => rc.hSet("guard:user:" + escape(uuid), "displayname", displayname))
-        .then(() => rc.hSet("guard:user:" + escape(uuid), "username", username))
-        .then(() => rc.hSet("guard:usernames", username, uuid))
-        .then(() => rc.hSet("guard:user:" + escape(uuid), "creation", now))
-        .then(() => rc.hSet("guard:user:" + escape(uuid), "lastLogin", now));
-
+    const hashed = await hash(uuid + password);
+    await rc.hSet("guard:user:" + escape(uuid), "password", hashed);
+    await rc.hSet("guard:user:" + escape(uuid), "displayname", displayname);
+    await rc.hSet("guard:user:" + escape(uuid), "username", username);
+    await rc.hSet("guard:usernames", username, uuid);
+    await rc.hSet("guard:user:" + escape(uuid), "creation", now);
+    await rc.hSet("guard:user:" + escape(uuid), "lastLogin", now);
+    return;
 }
 
 export function updateLastLogin(uuid) {
