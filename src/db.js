@@ -1,19 +1,3 @@
-export async function getAllUsers() {
-    const rc = await getRedisClient();
-    const usernames = await rc.hGetAll("guard:usernames");
-    const uuids = Object.values(usernames);
-    const users = [];
-    for (const uuid of uuids) {
-        const data = await rc.hGetAll("guard:user:" + escape(uuid));
-        users.push({
-            uuid,
-            displayname: data.displayname,
-            creation: data.creation ? new Date(Number(data.creation)).toLocaleString() : "",
-            lastLogin: data.lastLogin ? new Date(Number(data.lastLogin)).toLocaleString() : ""
-        });
-    }
-    return users;
-}
 // noinspection JSCheckFunctionSignatures
 
 import * as redis from "redis";
@@ -110,4 +94,20 @@ export function getUsername(uuid) {
 
 export function isUsernameAvailable(username) {
     return rc.hExists("guard:usernames", username)
+}
+
+export async function getAllUsers() {
+    const usernames = await rc.hGetAll("guard:usernames");
+    const uuids = Object.values(usernames);
+    const users = [];
+    for (const uuid of uuids) {
+        const data = await rc.hGetAll("guard:user:" + escape(uuid));
+        users.push({
+            uuid,
+            displayname: data.displayname,
+            creation: data.creation ? new Date(Number(data.creation)).toLocaleString() : "",
+            lastLogin: data.lastLogin ? new Date(Number(data.lastLogin)).toLocaleString() : ""
+        });
+    }
+    return users;
 }
