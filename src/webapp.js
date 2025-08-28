@@ -18,6 +18,7 @@ import {
     token,
     doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
 } from "./controller.js";
+import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
 import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,7 +37,6 @@ webapp.use(session({
 
 webapp.set('view engine', 'pug')
 webapp.set('views', __dirname + '/../views')
-webapp.get('/admin', admin)
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
 webapp.use('/js', express.static(__dirname + '/../node_modules/bootstrap/dist/js'))
 webapp.use('/favicon.ico', express.static(__dirname + '/../public/images/favicon.ico'))
@@ -51,6 +51,10 @@ webapp.use(bodyParser.urlencoded({extended: true}));
 //
 
 webapp.get('/', dashboard)
+
+webapp.get('/admin', admin)
+webapp.get('/admin/passwordreset/:username', adminPasswordResetView)
+webapp.post('/admin/passwordreset/:username', doAdminPasswordReset)
 
 webapp.get('/info', getInformation)
 

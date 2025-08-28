@@ -19,6 +19,9 @@ block content
         tr
         td.px-4.py-2.border-b.border-gray-200= user.uuid
         td.px-4.py-2.border-b.border-gray-200= user.displayname
-        td.px-4.py-2.border-b.border-gray-200= user.username
+        td.px-4.py-2.border-b.border-gray-200
+          = user.username
+          |  
+          a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`) Reset
         td.px-4.py-2.border-b.border-gray-200= user.creation
         td.px-4.py-2.border-b.border-gray-200= user.lastLogin

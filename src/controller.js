@@ -20,15 +20,76 @@ export async function admin(req, res) {
     log("Admin-Panel Zugriff gewährt. Nutzer geladen: " + users.length);
     res.render('admin', {users, title: "Admin"});
 }
+
+// Admin: Passwort zurücksetzen (Formular)
+export function adminPasswordResetView(req, res) {
+    const { username } = req.params;
+    log(`AdminPasswordReset-View aufgerufen von UUID: ${req.session.uuid} für username: ${username}`);
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        log('AdminPasswordReset Fehler: username fehlt in URL');
+        return res.redirect('/admin?error=13');
+    }
+    // Zeige Formular zum Setzen eines neuen Passworts für den Nutzer
+    res.render('adminPasswordReset', {username: username, title: `Passwort zurücksetzen: ${username}`});
+}
+
+// Admin: Passwort setzen (Formular-Submit)
+export function doAdminPasswordReset(req, res) {
+    const { username } = req.params;
+    const { password, passwordRepeat } = req.body;
+    log(`AdminPasswordReset Aktion von UUID: ${req.session.uuid} für username: ${username}`);
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        log('AdminPasswordReset Fehler: username fehlt in URL');
+        return res.redirect('/admin?error=13');
+    }
+    if (password == null || passwordRepeat == null) {
+        log('AdminPasswordReset Fehler: Felder fehlen');
+        return res.redirect(`/admin/passwordreset/${encodeURIComponent(username)}?error=9`);
+    }
+    if (!isPasswordValid(password)) {
+        log('AdminPasswordReset Fehler: Ungültiges Passwort');
+        return res.redirect(`/admin/passwordreset/${encodeURIComponent(username)}?error=10`);
+    }
+    if (password !== passwordRepeat) {
+        log('AdminPasswordReset Fehler: Passwörter stimmen nicht überein');
+        return res.redirect(`/admin/passwordreset/${encodeURIComponent(username)}?error=5`);
+    }
+    // Finde UUID und setze Passwort
+    getUUIDByUsername(username).then((uuid) => {
+        if (uuid == null) {
+            log(`AdminPasswordReset Fehler: Nutzer ${username} nicht gefunden`);
+            return res.redirect('/admin?error=2');
+        }
+        setPassword(uuid, password).then(() => {
+            log(`AdminPasswordReset erfolgreich: Passwort für ${username} (UUID: ${uuid}) geändert`);
+            return res.redirect('/admin');
+        }).catch((err) => {
+            log(`AdminPasswordReset Fehler beim Setzen des Passworts: ${err}`);
+            return res.redirect('/admin?error=14');
+        });
+    }).catch((err) => {
+        log(`AdminPasswordReset Fehler beim Laden der UUID: ${err}`);
+        return res.redirect('/admin?error=14');
+    });
+}
 // noinspection SpellCheckingInspection
 
 import {v4 as generateuuid} from "uuid";
 import {
     checkPassword,
-    getDisplayname, getUsername, getUUIDByToken, getUUIDByUsername,
+    getDisplayname, getUsername, getUUIDByUsername,
     isUsernameAvailable,
     setDisplayname, setPassword, setUsername,
-    storeToken,
     storeUser,
     updateLastLogin
 } from "./db.js";

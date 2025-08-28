@@ -31,10 +31,6 @@ export async function verifyHash(password, storedHash) {
     return await argon2.verify(storedHash, password);
 }
 
-export function getUUIDByToken(token) {
-    return rc.get("guard:token:" + escape(token));
-}
-
 export function getUUIDByUsername(username) {
     return rc.hGet("guard:usernames", username);
 }
@@ -45,12 +41,6 @@ export function checkPassword(uuid, password) {
             return verifyHash(uuid + password, value);
         }
         return false
-    })
-}
-
-export function storeToken(uuid, token) {
-    return rc.set("guard:token:" + escape(token), uuid).then(() => {
-        return rc.expire("guard:token:" + escape(token), 60 * 60) //Token verfällt nach einer Stunde
     })
 }
 
