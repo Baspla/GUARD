@@ -41,6 +41,6 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            baspla/guard:latest
+            baspla/guard:${{ github.ref_name }}
+            baspla/guard:${{ github.sha }}
