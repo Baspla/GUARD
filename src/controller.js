@@ -657,7 +657,7 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         veri = verification;
         authInfo = authenticationInfo;
         
-        console.log("verifyAuthenticationResponse Ergebnis:", verified);
+        console.log("verifyAuthenticationResponse Ergebnis:", veri);
         console.log("Authentication Info:", authInfo);
         // Update the passkey's counter in the database to prevent replay attacks
         await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
