@@ -4,21 +4,21 @@ block append scripts
 block inner-content
     h1.fs-1.mt-2.mb-3 Passkeys verwalten
     include errorWarning
-        .passkey-list#passkeyList
-            if typeof passkeys === 'undefined' || !passkeys
-                .alert.alert-warning Keine Passkeys gefunden.
-            else
-                each passkey in passkeys
-                    .card.mb-3
-                        .card-body
-                            h6.mb-2 #{passkey.id}
-                            a.btn.btn-danger(href=`/passkeyRemove?id=${passkey.id}`) Entfernen
+    .passkey-list#passkeyList
+        if typeof passkeys === 'undefined' || !passkeys
+            .alert.alert-warning Keine Passkeys gefunden.
+        else
+            each passkey in passkeys
+                .card.mb-3
+                    .card-body
+                        h6.mb-2 #{passkey.id}
+                        a.btn.btn-danger(href=`/passkeyRemove?id=${passkey.id}`) Entfernen
 
-        .mb-4
-            a.btn.btn-success.mb-3#addPasskeyButton(href="/passkeyAdd")
-                svg.bi.bi-plus-circle.me-2(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16")
-                    path(d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z")
-                    path(d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z")
-                | Neuen Passkey hinzufügen
-        .mt-4
-            a.btn.btn-outline-secondary(href="/") Zurück zum Dashboard
+    .mb-4
+        a.btn.btn-success.mb-3#addPasskeyButton(href="/passkeyAdd")
+            svg.bi.bi-plus-circle.me-2(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16")
+                path(d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z")
+                path(d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z")
+            | Neuen Passkey hinzufügen
+    .mt-4
+        a.btn.btn-outline-secondary(href="/") Zurück zum Dashboard

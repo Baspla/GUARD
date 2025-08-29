@@ -2,10 +2,10 @@ extends neumorphLayout
 block inner-content
     h1.fs-1.mt-2.mb-3 GUARD SSO
     include errorWarning
-        form.mb-3(method="post")
-            input.form-control.mb-3#displayname(placeholder="Anzeigename", name="displayname", type="text")
-            input.form-control.mb-3#username(placeholder="Nutzername", name="username", type="text")
-            input.form-control.mb-3#password(placeholder="Passwort", name="password", type="password")
-            input.form-control.mb-3#passwordRepeat(placeholder="Passwort wiederholen", name="passwordRepeat", type="password")
-            input.form-control.mb-3#secret(placeholder="Gotteslachs Geheimphrase", name="secret", type="text")
-            button.btn.btn-primary#btn(type="submit") Registrieren
+    form.mb-3(method="post")
+        input.form-control.mb-3#displayname(placeholder="Anzeigename", name="displayname", type="text")
+        input.form-control.mb-3#username(placeholder="Nutzername", name="username", type="text")
+        input.form-control.mb-3#password(placeholder="Passwort", name="password", type="password")
+        input.form-control.mb-3#passwordRepeat(placeholder="Passwort wiederholen", name="passwordRepeat", type="password")
+        input.form-control.mb-3#secret(placeholder="Gotteslachs Geheimphrase", name="secret", type="text")
+        button.btn.btn-primary#btn(type="submit") Registrieren

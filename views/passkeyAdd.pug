@@ -7,12 +7,12 @@ block inner-content
     h1.fs-1.mt-2.mb-3 Passkey hinzufügen
     include errorWarning
         
-        #success.mt-3
-        #error.mt-3
+    #success.mt-3
+    #error.mt-3
 
-        form.mb-3(method="post" action="/passkeyAdd")
-            .text-center.mb-4
-                button.btn.btn-success.btn-lg#btnBegin(type="button") Passkey erstellen
+    form.mb-3(method="post" action="/passkeyAdd")
+        .text-center.mb-4
+            button.btn.btn-success.btn-lg#btnBegin(type="button") Passkey erstellen
 
-        .mt-4
-            a.btn.btn-outline-secondary(href="/passkeymanage") Zurück
+    .mt-4
+        a.btn.btn-outline-secondary(href="/passkeymanage") Zurück

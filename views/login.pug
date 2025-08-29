@@ -6,23 +6,23 @@ block append postbodyscripts
 block inner-content
     h1.fs-1.mt-2.mb-3 GUARD SSO
     include errorWarning
-        if hostname != null
-            p Du meldest dich bei
-                |
-                |
-                span.text-decoration-underline #{hostname}
-                |  an.
-        form.mb-3(method="post")
-            input.form-control.mb-3#username(name="username" placeholder="Nutzername", type="text")
-            input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
-            if register_enabled
-                a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
-                button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
-            else
-                button.btn.btn-primary.w-100#loginButton(type="submit") Anmelden
-        .mb-3#passkeyHideBlock
-            p.text-center.text-muted.mb-3 oder
-            button.btn.btn-success.w-100.mb-2#btnBegin(type="button") Mit Passkey anmelden
-        .mt-3
-            span#success.text-success
-            span#error.text-danger
+    if hostname != null
+        p Du meldest dich bei
+            |
+            |
+            span.text-decoration-underline #{hostname}
+            |  an.
+    form.mb-3(method="post")
+        input.form-control.mb-3#username(name="username" placeholder="Nutzername", type="text")
+        input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
+        if register_enabled
+            a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
+            button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
+        else
+            button.btn.btn-primary.w-100#loginButton(type="submit") Anmelden
+    .mb-3#passkeyHideBlock
+        p.text-center.text-muted.mb-3 oder
+        button.btn.btn-success.w-100.mb-2#btnBegin(type="button") Mit Passkey anmelden
+    .mt-3
+        span#success.text-success
+        span#error.text-danger
