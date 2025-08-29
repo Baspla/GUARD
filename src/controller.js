@@ -566,8 +566,6 @@ export async function endpointGenerateRegistrationOptions(req, res) {
     // set current registration options
     req.session.registrationOptions = options;
 
-    log('options: ' + JSON.stringify(options));
-
     res.json(options);
 }
 
@@ -578,7 +576,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
         log("verifyRegistrationResponse Fehler: Nutzer nicht eingeloggt.");
         return res.status(403).json({ error: "Nicht eingeloggt" });
     }
-    const { body } = req.body;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const currentOptions = req.session.registrationOptions;
     let verification;
     try {
@@ -638,7 +636,7 @@ export async function endpointGenerateAuthenticationOptions(req, res) {
 
 export async function endpointVerifyAuthenticationResponse(req, res) {
     log("verifyAuthenticationResponse aufgerufen.");
-    const { body } = req.body;
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     // get the user from body.id
     const user = await getUserById(body.id);
     if (!user) {
