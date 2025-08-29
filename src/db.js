@@ -113,3 +113,95 @@ export async function getAllUsers() {
     }
     return users;
 }
+
+// Passkey-Funktionen
+export async function storePasskey(passkeyData) {
+    const { id, publicKey, user, webauthnUserID, counter, deviceType, backedUp, transports } = passkeyData;
+    
+    // Speichere den Passkey unter guard:passkey:{id}
+    const passkeyKey = "guard:passkey:" + escape(id);
+    
+    await rc.hSet(passkeyKey, {
+        "id": id,
+        "publicKey": Buffer.from(publicKey).toString('base64'), // Uint8Array als Base64 String speichern
+        "user": user, // UUID des Benutzers
+        "webauthnUserID": webauthnUserID,
+        "counter": counter.toString(),
+        "deviceType": deviceType,
+        "backedUp": backedUp.toString(),
+        "transports": transports ? transports.join(',') : '' // Array als CSV String
+    });
+
+    // Indexierung: Passkey ID zum Benutzer zuordnen
+    await rc.hSet("guard:user:" + escape(user) + ":passkeys", id, "1");
+    
+    // Indexierung: webauthnUserID für schnelle Suche
+    await rc.hSet("guard:webauthn:userids", webauthnUserID, user);
+    
+    return;
+}
+
+export async function getPasskey(id) {
+    const data = await rc.hGetAll("guard:passkey:" + escape(id));
+    
+    if (!data || Object.keys(data).length === 0) {
+        return null;
+    }
+    
+    return {
+        id: data.id,
+        publicKey: new Uint8Array(Buffer.from(data.publicKey, 'base64')), // Base64 String zurück zu Uint8Array
+        user: data.user,
+        webauthnUserID: data.webauthnUserID,
+        counter: parseInt(data.counter),
+        deviceType: data.deviceType,
+        backedUp: data.backedUp === 'true',
+        transports: data.transports ? data.transports.split(',').filter(t => t.length > 0) : []
+    };
+}
+
+export async function getUserPasskeys(uuid) {
+    const passkeyIds = await rc.hKeys("guard:user:" + escape(uuid) + ":passkeys");
+    const passkeys = [];
+    
+    for (const id of passkeyIds) {
+        const passkey = await getPasskey(id);
+        if (passkey) {
+            passkeys.push(passkey);
+        }
+    }
+    
+    return passkeys;
+}
+
+export async function getUserByWebAuthnID(webauthnUserID) {
+    return rc.hGet("guard:webauthn:userids", webauthnUserID);
+}
+
+export async function updatePasskeyCounter(id, newCounter) {
+    return rc.hSet("guard:passkey:" + escape(id), "counter", newCounter.toString());
+}
+
+export async function deletePasskey(id) {
+    const passkey = await getPasskey(id);
+    if (!passkey) {
+        return false;
+    }
+    
+    // Entferne den Passkey vom Benutzer
+    await rc.hDel("guard:user:" + escape(passkey.user) + ":passkeys", id);
+    
+    // Entferne den Passkey selbst
+    await rc.del("guard:passkey:" + escape(id));
+    
+    return true;
+}
+
+export async function getPasskeysByWebAuthnUserID(webauthnUserID) {
+    const uuid = await getUserByWebAuthnID(webauthnUserID);
+    if (!uuid) {
+        return [];
+    }
+    
+    return getUserPasskeys(uuid);
+}
