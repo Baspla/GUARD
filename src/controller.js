@@ -586,7 +586,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
         response: body,
         expectedChallenge: currentOptions.challenge,
         requireUserVerification: false,
-        expectedOrigin: origin,
+        expectedOrigin: rpOrigin,
         expectedRPID: rpID,
     });
     } catch (error) {
@@ -652,7 +652,7 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
             response: body,
             expectedChallenge: currentOptions.challenge,
             requireUserVerification: false,
-            expectedOrigin: origin,
+            expectedOrigin: rpOrigin,
             expectedRPID: rpID,
             credential: {
                 id: passkey.id,
