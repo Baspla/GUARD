@@ -641,7 +641,7 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
     const currentOptions = req.session.authenticationOptions;
     let veri,authInfo;
     try {
-        const { verification, authenticationInfo } = await verifyAuthenticationResponse({
+        const { verified, authenticationInfo } = await verifyAuthenticationResponse({
             response: body,
             expectedChallenge: currentOptions.challenge,
             requireUserVerification: false,
@@ -654,17 +654,17 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
                 transports: passkey.transports,
             }
         });
-        veri = verification;
+        veri = verified;
         authInfo = authenticationInfo;
         
         console.log("verifyAuthenticationResponse Ergebnis:", veri);
         console.log("Authentication Info:", authInfo);
+        console.log("Passkey ID:", passkey.id);
         // Update the passkey's counter in the database to prevent replay attacks
         await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
     } catch (error) {
         console.error(error);
         return res.status(400).send({ error: error.message });
     }
-    const { verified } = veri;
-    return res.json({ verified });
+    return res.json({ verified: veri });
 }
