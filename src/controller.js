@@ -657,14 +657,23 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         veri = verified;
         authInfo = authenticationInfo;
         
-        console.log("verifyAuthenticationResponse Ergebnis:", veri);
-        console.log("Authentication Info:", authInfo);
-        console.log("Passkey:", passkey);
+        //console.log("verifyAuthenticationResponse Ergebnis:", veri);
+        //console.log("Authentication Info:", authInfo);
+        //console.log("Passkey:", passkey);
         // Update the passkey's counter in the database to prevent replay attacks
         await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
         if (veri) {
             // set up the session
             const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
+            req.session.uuid = uuid;
+            updateLastLogin(uuid);
+            
+            const {redirect_uri, state} = req.query;
+            if (redirect_uri != null) {
+                return registerTokenAndRedirect(req, res, redirect_uri, state);
+            } else {
+                return res.redirect("/");
+            }
         }
     } catch (error) {
         console.error(error);
