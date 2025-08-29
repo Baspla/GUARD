@@ -166,8 +166,8 @@ export async function getUserPasskeys(uuid) {
     const passkeys = [];
     
     for (const id of passkeyIds) {
-        const passkeys = await getPasskey(id);
-        console.log("Passkey für Nutzer", uuid, id, passkeys);
+        const passkey = await getPasskey(id);
+        console.log("Passkey für Nutzer", uuid, id, passkey);
         if (passkey) {
             passkeys.push(passkey);
         }
