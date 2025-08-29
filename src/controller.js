@@ -637,14 +637,9 @@ export async function endpointGenerateAuthenticationOptions(req, res) {
 export async function endpointVerifyAuthenticationResponse(req, res) {
     log("verifyAuthenticationResponse aufgerufen.");
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    // get the user from body.id
-    const user = await getUserById(body.id);
-    if (!user) {
-        log("verifyAuthenticationResponse Fehler: Nutzer nicht gefunden.");
-        return res.status(404).json({ error: "Nutzer nicht gefunden" });
-    }
     const passkey = await getPasskey(body.id);
     const currentOptions = req.session.authenticationOptions;
+    let veri,authInfo;
     try {
         const { verification, authenticationInfo } = await verifyAuthenticationResponse({
             response: body,
@@ -659,12 +654,16 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
                 transports: passkey.transports,
             }
         });
+        veri = verification;
+        authInfo = authenticationInfo;
         // Update the authenticator's counter in the database to prevent replay attacks
         await updateAuthenticatorCounter(passkey, authenticationInfo);
     } catch (error) {
         console.error(error);
         return res.status(400).send({ error: error.message });
     }
-    const { verified } = verification;
+    const { verified } = veri;
+    console.log("verifyAuthenticationResponse Ergebnis:", verified);
+    console.log("Authentication Info:", authInfo);
     return res.json({ verified });
 }

@@ -116,7 +116,6 @@ export async function getAllUsers() {
 
 // Passkey-Funktionen
 export async function storePasskey(user,passkeyData) {
-    console.log("Storing passkey: " + JSON.stringify(passkeyData));
     const { id, publicKey, webAuthnUserID, counter, deviceType, backedUp, transports } = passkeyData;
     
     // Speichere den Passkey unter guard:passkey:{id}
