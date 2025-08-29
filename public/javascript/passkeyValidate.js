@@ -50,11 +50,7 @@ elemBegin.addEventListener('click', async () => {
 
     // Show UI appropriate for the `verified` status
     if (verificationJSON && verificationJSON.verified) {
-        if (verificationJSON.redirect) {
-            window.location.href = verificationJSON.redirect;
-        } else {
-            window.location.href = '/';
-        }
+        window.location.reload();
     } else {
         elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(
             verificationJSON,

@@ -703,12 +703,6 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
         req.session.uuid = uuid;
         updateLastLogin(uuid);
-        
-        const {redirect_uri, state} = req.query;
-        if (redirect_uri != null) {
-            url = registerTokenAndRedirect(req, res, redirect_uri, state);
-            return res.json({ verified: veri, redirect: url });
-        }
     }
     return res.json({ verified: veri });
 }
