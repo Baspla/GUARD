@@ -135,9 +135,9 @@ export async function storePasskey(user,passkeyData) {
 
     // Indexierung: Passkey ID zum Benutzer zuordnen
     await rc.hSet("guard:user:" + escape(user) + ":passkeys", id, "1");
-    
-    // Indexierung: webauthnUserID für schnelle Suche
-    await rc.hSet("guard:webauthn:userids", webauthnUserID, user);
+
+    // Indexierung: webAuthnUserID für schnelle Suche
+    await rc.hSet("guard:webauthn:userids", webAuthnUserID, user);
     
     return;
 }
