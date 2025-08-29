@@ -502,7 +502,8 @@ export function passkeyManage(req, res) {
         log("passkeyManage Fehler: Nutzer nicht eingeloggt.");
         return res.redirect('/login');
     }
-    res.render('passkeyManage', { title: 'Passkeys verwalten' });
+    const passkeys = getUserPasskeys(req.session.uuid);
+    res.render('passkeyManage', { title: 'Passkeys verwalten', passkeys });
 }
 
 export function passkeyAdd(req, res) {
