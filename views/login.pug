@@ -20,6 +20,8 @@ block content
             input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
             if register_enabled
                 a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
+            else
+                button.btn.btn-outline-secondary.m-1#registerButton(disabled=true) Registrierung deaktiviert
             button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
         .mb-3#passkeyHideBlock
             p.text-center.text-muted oder

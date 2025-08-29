@@ -104,6 +104,7 @@ import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.
 
 export function login(req, res) {
     const {redirect_uri, error, state} = req.query;
+    register_enabled = !(process.env.REGISTER_DISABLED == "true");
     log(`Login-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
     if (isLoggedIn(req)) {
         if (redirect_uri == null) {
@@ -135,8 +136,6 @@ export function login(req, res) {
     } else {
         if (redirect_uri == null) {
             log("Login-View für nicht eingeloggten Nutzer ohne ServiceURL.");
-            register_disabled = process.env.REGISTER_DISABLED == "true";
-            register_enabled = !register_disabled;
             return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state, register_enabled: register_enabled});
         } else {
             let hostname;
@@ -155,7 +154,8 @@ export function login(req, res) {
                 error: error,
                 hostname: hostname,
                 title: "Anmelden",
-                state: state
+                state: state,
+                register_enabled: register_enabled
             });
         }
     }
