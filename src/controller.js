@@ -540,7 +540,7 @@ export async function endpointGenerateRegistrationOptions(req, res) {
     }
     const userPasskeys = await getUserPasskeys(req.session.uuid) || [];
     const username = await getUsername(req.session.uuid);
-    const options = generateRegistrationOptions({
+    const options = await generateRegistrationOptions({
         rpName,
         rpID,
         userName: username,
@@ -624,7 +624,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
     return res.json({ verified });
 }
 
-export function endpointGenerateAuthenticationOptions(req, res) {
+export async function endpointGenerateAuthenticationOptions(req, res) {
     log("generateAuthenticationOptions aufgerufen.");
     const options = generateAuthenticationOptions({
         rpID:rpID,
