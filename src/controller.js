@@ -617,7 +617,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
             // Whether the passkey has been backed up in some way
             backedUp: credentialBackedUp,
         };
-        storePasskey(passkeyData);
+        storePasskey(req.session.uuid, passkeyData);
     }
     return res.json({ verified });
 }

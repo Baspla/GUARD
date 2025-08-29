@@ -115,9 +115,9 @@ export async function getAllUsers() {
 }
 
 // Passkey-Funktionen
-export async function storePasskey(passkeyData) {
+export async function storePasskey(user,passkeyData) {
     console.log("Storing passkey: " + JSON.stringify(passkeyData));
-    const { id, publicKey, user, webauthnUserID, counter, deviceType, backedUp, transports } = passkeyData;
+    const { id, publicKey, webAuthnUserID, counter, deviceType, backedUp, transports } = passkeyData;
     
     // Speichere den Passkey unter guard:passkey:{id}
     const passkeyKey = "guard:passkey:" + escape(id);
@@ -125,8 +125,8 @@ export async function storePasskey(passkeyData) {
     await rc.hSet(passkeyKey, {
         "id": id,
         "publicKey": Buffer.from(publicKey).toString('base64'), // Uint8Array als Base64 String speichern
-        "user": user, // UUID des Benutzers
-        "webauthnUserID": webauthnUserID,
+        "user": user,
+        "webauthnUserID": webAuthnUserID,
         "counter": counter.toString(),
         "deviceType": deviceType,
         "backedUp": backedUp.toString(),
