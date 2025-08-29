@@ -1,14 +1,11 @@
-extends layout
-block append css
-    link(rel='stylesheet', href='/sheets/neumorph.css')
+extends neumorphLayout
 block append scripts 
     script(src='/webauthn/index.umd.min.js')
 block append postbodyscripts
     script(src='/scripts/passkeyRemove.js')
-block content
-    .align-self-center.neumorph.px-5.py-4
-        h1.fs-1.mt-2.mb-3 Passkey entfernen
-        include errorWarning
+block inner-content
+    h1.fs-1.mt-2.mb-3 Passkey entfernen
+    include errorWarning
         
         .alert.alert-danger(role="alert")
             svg.bi.bi-exclamation-triangle.me-2(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16")

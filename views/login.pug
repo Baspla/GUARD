@@ -1,14 +1,11 @@
-extends layout
-block append css
-    link(rel='stylesheet', href='/sheets/neumorph.css')
+extends neumorphLayout
 block append scripts 
     script(src='/webauthn/index.umd.min.js')
 block append postbodyscripts
     script(src='/scripts/passkeyValidate.js')
-block content
-    .align-self-center.neumorph.px-5.py-4
-        h1.fs-1.mt-2.mb-3 GUARD SSO
-        include errorWarning
+block inner-content
+    h1.fs-1.mt-2.mb-3 GUARD SSO
+    include errorWarning
         if hostname != null
             p Du meldest dich bei
                 |

@@ -1,11 +1,7 @@
-extends layout
+extends neumorphLayout
 
-block append css
-    link(rel='stylesheet', href='/sheets/neumorph.css')
-
-block content
-  .align-self-center.neumorph.px-5.py-4
-    h1.fs-1.mt-2.mb-3 Admin: Nutzerübersicht
+block inner-content
+  h1.fs-1.mt-2.mb-3 Admin: Nutzerübersicht
     table.table.table-striped.w-full.text-left.border-collapse
       thead.bg-gray-100
       tr

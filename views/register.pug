@@ -1,10 +1,7 @@
-extends layout
-block append css
-    link(rel='stylesheet', href='/sheets/neumorph.css')
-block content
-    .align-self-center.neumorph.px-5.py-4
-        h1.fs-1.mt-2.mb-3 GUARD SSO
-        include errorWarning
+extends neumorphLayout
+block inner-content
+    h1.fs-1.mt-2.mb-3 GUARD SSO
+    include errorWarning
         form.mb-3(method="post")
             input.form-control.mb-3#displayname(placeholder="Anzeigename", name="displayname", type="text")
             input.form-control.mb-3#username(placeholder="Nutzername", name="username", type="text")

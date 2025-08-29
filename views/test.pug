@@ -1,9 +1,6 @@
-extends layout
-block append css
-    link(rel='stylesheet', href='/sheets/neumorph.css')
-block content
-    .align-self-center.neumorph.px-5.py-4
-        h1.fs-1.mt-2.mb-3  GUARD SSO
+extends neumorphLayout
+block inner-content
+    h1.fs-1.mt-2.mb-3  GUARD SSO
         .alert.alert-danger(hidden)#alert
             #alert-text
         p #{message}
