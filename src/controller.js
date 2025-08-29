@@ -664,8 +664,10 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
         if (veri) {
             // set up the session
-            const uuid = getUserByWebAuthnID(passkey.id);
+            const uuid = await getUserByWebAuthnID(passkey.id);
+            const uuid2 = passkey.user;
             console.log("User ID:", uuid);
+            console.log("User ID2:", uuid2);
         }
     } catch (error) {
         console.error(error);
