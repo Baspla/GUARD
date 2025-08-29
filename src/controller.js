@@ -135,7 +135,8 @@ export function login(req, res) {
     } else {
         if (redirect_uri == null) {
             log("Login-View für nicht eingeloggten Nutzer ohne ServiceURL.");
-            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state});
+            register_enabled = !process.env.REGISTER_DISABLED
+            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state, register_enabled: register_enabled});
         } else {
             let hostname;
             try {
@@ -180,6 +181,10 @@ export function registerUser(req, res) {
     if (isLoggedIn(req)) {
         log("Nutzer ist bereits eingeloggt. Weiterleitung zu Startseite.");
         return res.redirect('/');
+    }
+    if (process.env.REGISTER_DISABLED == true) {
+        log("Registrierung ist deaktiviert.");
+        return res.render("error", {error: "Registrierung ist deaktiviert.", state: state, redirect_uri: redirect_uri});
     }
     const {error, state, redirect_uri} = req.query;
     log(`Register-View für nicht eingeloggten Nutzer. error: ${error}, state: ${state}, redirect_uri: ${redirect_uri}`);
