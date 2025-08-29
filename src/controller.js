@@ -591,7 +591,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
     console.error(error);
     return res.status(400).send({ error: error.message });
     }
-    const { verified } = verification;
+    const { verified, registrationInfo } = verification;
     // Save the verified registration
     if (verified) {
         const {
