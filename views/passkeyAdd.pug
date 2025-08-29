@@ -9,6 +9,9 @@ block content
         h1.fs-1.mt-2.mb-3 Passkey hinzufügen
         include errorWarning
         
+        #success.mt-3
+        #error.mt-3
+
         form.mb-3(method="post" action="/passkeyAdd")
             .mb-3
                 label.form-label(for="passkeyName") Name für den Passkey
@@ -16,13 +19,8 @@ block content
                 .form-text Geben Sie einen Namen ein, um diesen Passkey später zu identifizieren.
 
             .text-center.mb-4
-                button.btn.btn-success.btn-lg#createPasskeyButton(type="button") Passkey erstellen
+                button.btn.btn-success.btn-lg#btnBegin(type="button") Passkey erstellen
 
-            .passkey-creation-status#creationStatus.d-none
-                .alert.alert-primary(role="alert")
-                    .d-flex.align-items-center
-                        .spinner-border.spinner-border-sm.me-3(role="status")
-                        div Passkey wird erstellt...
 
         .mt-4
             a.btn.btn-outline-secondary(href="/passkeymanage") Zurück zur Übersicht
