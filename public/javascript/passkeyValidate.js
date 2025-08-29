@@ -9,7 +9,7 @@ const elemError = document.getElementById('error');
 const elemHide = document.getElementById("passkeyHideBlock");
 
 if (!browserSupportsWebAuthn()) {
-    console.log('Error: WebAuthn is not supported by your browser.');
+    console.log('Error: WebAuthn is not supported by your browser');
     elemHide.style.display = "none";
 }
 
