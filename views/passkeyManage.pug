@@ -5,48 +5,27 @@ block content
     .align-self-center.neumorph.px-5.py-4
         h1.fs-1.mt-2.mb-3 Passkeys verwalten
         include errorWarning
-        
+        h4 Ihre Passkeys
+        .passkey-list#passkeyList
+            each passkey in passkeys
+                .card.mb-3
+                    .card-body
+                        .row.align-items-center
+                            .col-8
+                                h6.mb-1 #{passkey.device}
+                                small.text-muted Erstellt am #{passkey.createdAt}
+                            .col-4.text-end
+                                button.btn.btn-outline-danger.btn-sm.remove-passkey(type="button" data-id=passkey.id)
+                                    svg.bi.bi-trash.me-1(xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16")
+                                        path(d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z")
+                                        path(d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z")
+                                    | Entfernen
+
         .mb-4
             button.btn.btn-success.mb-3#addPasskeyButton(type="button")
                 svg.bi.bi-plus-circle.me-2(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16")
                     path(d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z")
                     path(d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z")
                 | Neuen Passkey hinzufügen
-
-        h4 Ihre Passkeys
-        .passkey-list#passkeyList
-            // Beispiel-Passkeys für die Darstellung
-            .card.mb-3
-                .card-body
-                    .row.align-items-center
-                        .col-8
-                            h6.mb-1 Chrome - Windows
-                            small.text-muted Erstellt am 15.08.2025
-                        .col-4.text-end
-                            button.btn.btn-outline-danger.btn-sm.remove-passkey(type="button" data-id="example1")
-                                svg.bi.bi-trash.me-1(xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16")
-                                    path(d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z")
-                                    path(d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z")
-                                | Entfernen
-
-            .card.mb-3
-                .card-body
-                    .row.align-items-center
-                        .col-8
-                            h6.mb-1 iPhone - Safari
-                            small.text-muted Erstellt am 10.08.2025
-                        .col-4.text-end
-                            button.btn.btn-outline-danger.btn-sm.remove-passkey(type="button" data-id="example2")
-                                svg.bi.bi-trash.me-1(xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16")
-                                    path(d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z")
-                                    path(d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z")
-                                | Entfernen
-
-        .alert.alert-info.mt-4(role="alert")
-            svg.bi.bi-info-circle.me-2(xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16")
-                path(d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z")
-                path(d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z")
-            | Passkeys ermöglichen eine sichere, passwortlose Anmeldung mit biometrischen Daten oder Sicherheitsschlüsseln.
-
         .mt-4
             a.btn.btn-outline-secondary(href="/") Zurück zum Dashboard
