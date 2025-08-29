@@ -14,11 +14,8 @@ block content
                 each passkey in passkeys
                     .card.mb-3
                         .card-body
-                        .row.align-items-center
-                            .col-8
-                                h6.mb-1 #{passkey.id}
-                            .col-4.text-center
-                                a.btn.btn-danger(href=`/passkeyRemove?id=${passkey.id}`) Entfernen
+                            h6.mb-2 #{passkey.id}
+                            a.btn.btn-danger(href=`/passkeyRemove?id=${passkey.id}`) Entfernen
 
         .mb-4
             a.btn.btn-success.mb-3#addPasskeyButton(href="/passkeyAdd")
