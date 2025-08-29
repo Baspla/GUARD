@@ -18,7 +18,7 @@ block content
         form.mb-3(method="post")
             input.form-control.mb-3#username(name="username" placeholder="Nutzername", type="text")
             input.form-control.mb-3#password(name="password" placeholder="Passwort", type="password")
-            if registerEnabled
+            if register_enabled
                 a.btn.btn-outline-secondary.m-1#registerButton(href="register"+registerSuffix) Registrieren
             button.btn.btn-primary.m-1#loginButton(type="submit") Anmelden
         .mb-3#passkeyHideBlock
