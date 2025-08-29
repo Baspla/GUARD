@@ -503,6 +503,7 @@ export function passkeyManage(req, res) {
         return res.redirect('/login');
     }
     const passkeys = getUserPasskeys(req.session.uuid);
+    log(`passkeyManage: Nutzer ${req.session.uuid} hat folgende Passkeys: ${JSON.stringify(passkeys)}`);
     res.render('passkeyManage', { title: 'Passkeys verwalten', passkeys });
 }
 
