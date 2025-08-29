@@ -1,4 +1,4 @@
-import { getAllUsers, getPasskey, getUserPasskeys, storePasskey } from "./db.js";
+import { getAllUsers, getPasskey, getUserPasskeys, storePasskey, updatePasskeyCounter } from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -656,14 +656,15 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         });
         veri = verification;
         authInfo = authenticationInfo;
-        // Update the authenticator's counter in the database to prevent replay attacks
-        await updateAuthenticatorCounter(passkey, authenticationInfo);
+        
+        console.log("verifyAuthenticationResponse Ergebnis:", verified);
+        console.log("Authentication Info:", authInfo);
+        // Update the passkey's counter in the database to prevent replay attacks
+        await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
     } catch (error) {
         console.error(error);
         return res.status(400).send({ error: error.message });
     }
     const { verified } = veri;
-    console.log("verifyAuthenticationResponse Ergebnis:", verified);
-    console.log("Authentication Info:", authInfo);
     return res.json({ verified });
 }
