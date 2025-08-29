@@ -104,7 +104,7 @@ import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.
 
 export function login(req, res) {
     const {redirect_uri, error, state} = req.query;
-    register_enabled = !(process.env.REGISTER_DISABLED == "true");
+    const register_enabled = !(process.env.REGISTER_DISABLED == "true");
     log(`Login-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
     if (isLoggedIn(req)) {
         if (redirect_uri == null) {
