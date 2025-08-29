@@ -536,6 +536,8 @@ export async function doPasskeyRemove(req, res) {
     const passkeyId = req.query.id;
     // check ob der passkey auch dem Nutzer gehört
     const userPasskeys = await getUserPasskeys(req.session.uuid);
+    console.log("provided passkeyId:", passkeyId);
+    console.log("userPasskeys:", userPasskeys);
     if (!userPasskeys.some(passkey => passkey.id === passkeyId)) {
         log("doPasskeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
         return res.status(403).json({ error: "Nicht berechtigt" });
