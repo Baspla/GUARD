@@ -1,4 +1,4 @@
-import { getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter } from "./db.js";
+import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter } from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -525,13 +525,29 @@ export function passkeyRemove(req, res) {
     res.render('passkeyRemove', { title: 'Passkey entfernen' });
 }
 
-export function doPasskeyRemove(req, res) {
+export async function doPasskeyRemove(req, res) {
     log("doPasskeyRemove aufgerufen.");
     if (!isLoggedIn(req)) {
         log("doPasskeyRemove Fehler: Nutzer nicht eingeloggt.");
         return res.redirect('/login');
     }
     // Hier die Logik zum Entfernen des Passkeys implementieren
+    // passkey der gelöscht werden soll ist in &id=...
+    const passkeyId = req.query.id;
+    // check ob der passkey auch dem Nutzer gehört
+    const userPasskeys = await getUserPasskeys(req.session.uuid);
+    if (!userPasskeys.some(passkey => passkey.id === passkeyId)) {
+        log("doPasskeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
+        return res.status(403).json({ error: "Nicht berechtigt" });
+    }
+    // Passkey löschen
+    const result = await deletePasskey(passkeyId);
+    if (!result) {
+        log(`doPasskeyRemove Fehler: Passkey konnte nicht gelöscht werden. UUID: ${req.session.uuid}, Passkey ID: ${passkeyId}`);
+        return res.status(500).json({ error: "Passkey konnte nicht gelöscht werden." });
+    }
+    log(`doPasskeyRemove erfolgreich: Passkey gelöscht. UUID: ${req.session.uuid}, Passkey ID: ${passkeyId}`);
+    res.json({ success: result });
 }
 
 const rpName = "GURAD"

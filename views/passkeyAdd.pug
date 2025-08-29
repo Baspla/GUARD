@@ -14,15 +14,8 @@ block content
         #error.mt-3
 
         form.mb-3(method="post" action="/passkeyAdd")
-            .mb-3
-                label.form-label(for="passkeyName") Name für den Passkey
-                input.form-control#passkeyName(name="passkeyName" type="text" placeholder="z.B. 'Mein Laptop' oder 'iPhone'" required)
-                .form-text Geben Sie einen Namen ein, um diesen Passkey später zu identifizieren.
-
             .text-center.mb-4
                 button.btn.btn-success.btn-lg#btnBegin(type="button") Passkey erstellen
 
-
         .mt-4
-            a.btn.btn-outline-secondary(href="/passkeymanage") Zurück zur Übersicht
-            a.btn.btn-outline-secondary.ms-2(href="/") Zum Dashboard
+            a.btn.btn-outline-secondary(href="/passkeymanage") Zurück
