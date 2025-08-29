@@ -532,17 +532,18 @@ const rpName = "GURAD"
 const rpID = process.env.RP_ID || "localhost"
 const rpOrigin = `https://${rpID}`
 
-export function endpointGenerateRegistrationOptions(req, res) {
+export async function endpointGenerateRegistrationOptions(req, res) {
     log("generateRegistrationOptions aufgerufen.");
     if (!isLoggedIn(req)) {
         log("generateRegistrationOptions Fehler: Nutzer nicht eingeloggt.");
         return res.status(403).json({ error: "Nicht eingeloggt" });
     }
-    const userPasskeys = getUserPasskeys(req.session.uuid);
+    const userPasskeys = await getUserPasskeys(req.session.uuid) || [];
+    const username = await getUsername(req.session.uuid);
     const options = generateRegistrationOptions({
         rpName,
         rpID,
-        userName: getUsername(req.session.uuid),
+        userName: username,
         // Don't prompt users for additional information about the authenticator
         // (Recommended for smoother UX)
         attestationType: 'none',
