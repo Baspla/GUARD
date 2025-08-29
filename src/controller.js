@@ -7,6 +7,7 @@ import {
     generateAuthenticationOptions,
     verifyAuthenticationResponse
 } from "@simplewebauthn/server";
+import { signToken, verifyToken } from "./jwt.js";
 
 function log(message) {
     const logPath = path.resolve("./logs/app.log");
