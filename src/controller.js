@@ -245,7 +245,11 @@ function registerTokenAndRedirect(req, res, redirect_uri, state) {
     if (typeof state !== 'undefined') url.searchParams.append('state', state);
     url.searchParams.append('code', token);
     log(`Redirect mit Token: ${token} zu URL: ${url}`);
-    res.redirect(url);
+    if (res) {
+        res.redirect(url);
+    } else {
+        return url.toString();
+    }
 }
 
 export function token(req, res) {
@@ -662,22 +666,22 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         //console.log("Passkey:", passkey);
         // Update the passkey's counter in the database to prevent replay attacks
         await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
-        if (veri) {
-            // set up the session
-            const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
-            req.session.uuid = uuid;
-            updateLastLogin(uuid);
-            
-            const {redirect_uri, state} = req.query;
-            if (redirect_uri != null) {
-                return registerTokenAndRedirect(req, res, redirect_uri, state);
-            } else {
-                return res.redirect("/");
-            }
-        }
     } catch (error) {
         console.error(error);
         return res.status(400).send({ error: error.message });
+    }
+    
+    if (veri) {
+        // set up the session
+        const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
+        req.session.uuid = uuid;
+        updateLastLogin(uuid);
+        
+        const {redirect_uri, state} = req.query;
+        if (redirect_uri != null) {
+            url = registerTokenAndRedirect(req, res, redirect_uri, state);
+            return res.json({ verified: veri, redirect: url });
+        }
     }
     return res.json({ verified: veri });
 }
