@@ -695,7 +695,7 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         console.error(error);
         return res.status(400).send({ error: error.message });
     }
-    
+    log(`verifyAuthenticationResponse Ergebnis: ${veri}`);
     if (veri) {
         // set up the session
         const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);

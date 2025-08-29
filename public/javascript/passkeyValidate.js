@@ -39,6 +39,7 @@ elemBegin.addEventListener('click', async () => {
 
     // Wait for the results of verification
     const verificationJSON = await verificationResp.json();
+    console.log(verificationJSON);
 
     // Show UI appropriate for the `verified` status
     if (verificationJSON && verificationJSON.verified) {
