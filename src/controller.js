@@ -624,7 +624,7 @@ export async function endpointVerifyRegistrationResponse(req, res) {
 
 export async function endpointGenerateAuthenticationOptions(req, res) {
     log("generateAuthenticationOptions aufgerufen.");
-    const options = generateAuthenticationOptions({
+    const options = await generateAuthenticationOptions({
         rpID:rpID,
     });
 
