@@ -542,7 +542,7 @@ export function endpointGenerateRegistrationOptions(req, res) {
     const options = generateRegistrationOptions({
         rpName,
         rpID,
-        userName: user.username,
+        userName: getUsername(req.session.uuid),
         // Don't prompt users for additional information about the authenticator
         // (Recommended for smoother UX)
         attestationType: 'none',
