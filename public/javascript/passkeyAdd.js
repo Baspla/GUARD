@@ -1,4 +1,5 @@
 
+  const { startRegistration } = SimpleWebAuthnBrowser;
   // <button>
   const elemBegin = document.getElementById('btnBegin');
   // <span>/<p>/etc...
