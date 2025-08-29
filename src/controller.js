@@ -566,6 +566,8 @@ export async function endpointGenerateRegistrationOptions(req, res) {
     // set current registration options
     req.session.registrationOptions = options;
 
+    log('options: ' + JSON.stringify(options));
+
     res.json(options);
 }
 
