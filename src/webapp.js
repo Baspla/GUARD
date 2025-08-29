@@ -19,9 +19,15 @@ import {
     passkeyAdd,
     passkeyManage,
     passkeyRemove,
-    doPasskeyAdd,
     doPasskeyRemove,
-    doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
+    doDisplaynamechange,
+    doUsernamechange,
+    doPasswordchange, 
+    getInformation,
+    endpointGenerateAuthenticationOptions,
+    endpointGenerateRegistrationOptions,
+    endpointVerifyAuthenticationResponse,
+    endpointVerifyRegistrationResponse
 } from "./controller.js";
 import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
 import * as bodyParser from "express";
@@ -83,8 +89,12 @@ webapp.get('/token', token)
 webapp.get('/passkeymanage', passkeyManage)
 webapp.get('/passkeyadd', passkeyAdd)
 webapp.get('/passkeyremove', passkeyRemove)
-webapp.post('/passkeyadd', doPasskeyAdd)
 webapp.post('/passkeyremove', doPasskeyRemove)
+
+webapp.get('/generate-registration-options', endpointGenerateRegistrationOptions)
+webapp.post('/verify-registration', endpointVerifyRegistrationResponse)
+webapp.get('/generate-authentication-options', endpointGenerateAuthenticationOptions)
+webapp.post('/verify-authentication', endpointVerifyAuthenticationResponse)
 
 webapp.get('/login', login)
 

@@ -1,7 +1,4 @@
-console.log('login.js script loaded');
-
 const { startAuthentication } = SimpleWebAuthnBrowser;
-
 // <button>
 const elemBegin = document.getElementById('btnBegin');
 // <span>/<p>/etc...
@@ -32,7 +29,7 @@ try {
 
 // POST the response to the endpoint that calls
 // @simplewebauthn/server -> verifyAuthenticationResponse()
-const verificationResp = await fetch('/verify-authentication', {
+const verificationResp = await fetch('verify-authentication', {
     method: 'POST',
     headers: {
     'Content-Type': 'application/json',

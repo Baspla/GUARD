@@ -1,6 +1,12 @@
-import { getAllUsers } from "./db.js";
+import { getAllUsers, getPasskey, getUserPasskeys, storePasskey } from "./db.js";
 import fs from "fs";
 import path from "path";
+import {
+    generateRegistrationOptions,
+    verifyRegistrationResponse,
+    generateAuthenticationOptions,
+    verifyAuthenticationResponse
+} from "@simplewebauthn/server";
 
 function log(message) {
     const logPath = path.resolve("./logs/app.log");
@@ -513,15 +519,6 @@ export function passkeyRemove(req, res) {
     res.render('passkeyRemove', { title: 'Passkey entfernen' });
 }
 
-export function doPasskeyAdd(req, res) {
-    log("doPasskeyAdd aufgerufen.");
-    if (!isLoggedIn(req)) {
-        log("doPasskeyAdd Fehler: Nutzer nicht eingeloggt.");
-        return res.redirect('/login');
-    }
-    // Hier die Logik zum Hinzufügen des Passkeys implementieren
-}
-
 export function doPasskeyRemove(req, res) {
     log("doPasskeyRemove aufgerufen.");
     if (!isLoggedIn(req)) {
@@ -529,4 +526,144 @@ export function doPasskeyRemove(req, res) {
         return res.redirect('/login');
     }
     // Hier die Logik zum Entfernen des Passkeys implementieren
+}
+
+const rpName = "GURAD"
+const rpID = process.env.RP_ID || "localhost"
+const rpOrigin = `https://${rpID}`
+
+export function endpointGenerateRegistrationOptions(req, res) {
+    log("generateRegistrationOptions aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("generateRegistrationOptions Fehler: Nutzer nicht eingeloggt.");
+        return res.status(403).json({ error: "Nicht eingeloggt" });
+    }
+    const userPasskeys = getUserPasskeys(req.session.uuid);
+    const options = generateRegistrationOptions({
+        rpName,
+        rpID,
+        userName: user.username,
+        // Don't prompt users for additional information about the authenticator
+        // (Recommended for smoother UX)
+        attestationType: 'none',
+        // Prevent users from re-registering existing authenticators
+        excludeCredentials: userPasskeys.map(passkey => ({
+            id: passkey.id,
+            // Optional
+            transports: passkey.transports,
+        })),
+        // See "Guiding use of authenticators via authenticatorSelection" below
+        authenticatorSelection: {
+            // Defaults
+            residentKey: 'required',
+            userVerification: 'preferred',
+            // Optional
+            authenticatorAttachment: 'platform',
+        },
+    });
+
+    // set current registration options
+    req.session.registrationOptions = options;
+
+    res.json(options);
+}
+
+
+export async function endpointVerifyRegistrationResponse(req, res) {
+    log("verifyRegistrationResponse aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("verifyRegistrationResponse Fehler: Nutzer nicht eingeloggt.");
+        return res.status(403).json({ error: "Nicht eingeloggt" });
+    }
+    const { body } = req.body;
+    const currentOptions = req.session.registrationOptions;
+    let verification;
+    try {
+    verification = await verifyRegistrationResponse({
+        response: body,
+        expectedChallenge: currentOptions.challenge,
+        requireUserVerification: false,
+        expectedOrigin: origin,
+        expectedRPID: rpID,
+    });
+    } catch (error) {
+    console.error(error);
+    return res.status(400).send({ error: error.message });
+    }
+    const { verified } = verification;
+    // Save the verified registration
+    if (verified) {
+        const {
+            credential,
+            credentialDeviceType,
+            credentialBackedUp,
+        } = registrationInfo;
+        const passkeyData =  {
+            // `user` here is from Step 2
+            user: req.session.user,
+            // Created by `generateRegistrationOptions()` in Step 1
+            webAuthnUserID: currentOptions.user.id,
+            // A unique identifier for the credential
+            id: credential.id,
+            // The public key bytes, used for subsequent authentication signature verification
+            publicKey: credential.publicKey,
+            // The number of times the authenticator has been used on this site so far
+            counter: credential.counter,
+            // How the browser can talk with this credential's authenticator
+            transports: credential.transports,
+            // Whether the passkey is single-device or multi-device
+            deviceType: credentialDeviceType,
+            // Whether the passkey has been backed up in some way
+            backedUp: credentialBackedUp,
+        };
+        storePasskey(passkeyData);
+    }
+    return res.json({ verified });
+}
+
+export function endpointGenerateAuthenticationOptions(req, res) {
+    log("generateAuthenticationOptions aufgerufen.");
+    const options = generateAuthenticationOptions({
+        rpID:rpID,
+    });
+
+    // set current authentication options
+    req.session.authenticationOptions = options;
+
+    res.json(options);
+}
+
+export async function endpointVerifyAuthenticationResponse(req, res) {
+    log("verifyAuthenticationResponse aufgerufen.");
+    const { body } = req.body;
+    // get the user from body.id
+    const user = await getUserById(body.id);
+    if (!user) {
+        log("verifyAuthenticationResponse Fehler: Nutzer nicht gefunden.");
+        return res.status(404).json({ error: "Nutzer nicht gefunden" });
+    }
+    const passkey = await getPasskey(body.id);
+    const currentOptions = req.session.authenticationOptions;
+    try {
+        const { verification, authenticationInfo } = await verifyAuthenticationResponse({
+            response: body,
+            expectedChallenge: currentOptions.challenge,
+            requireUserVerification: false,
+            expectedOrigin: origin,
+            expectedRPID: rpID,
+            credential: {
+                id: passkey.id,
+                publicKey: passkey.publicKey,
+                counter: passkey.counter,
+                transports: passkey.transports,
+            }
+        });
+        // Update the authenticator's counter in the database to prevent replay attacks
+        await updateAuthenticatorCounter(passkey, authenticationInfo);
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send({ error: error.message });
+    }
+    const { verified } = verification;
+    return res.json({ verified });
 }

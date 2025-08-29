@@ -1,5 +1,3 @@
-console.log('Passkey registration script loaded');
-
 const { startRegistration } = SimpleWebAuthnBrowser;
 // <button>
 const elemBegin = document.getElementById('btnBegin');
