@@ -89,7 +89,7 @@ webapp.get('/token', token)
 webapp.get('/passkeymanage', passkeyManage)
 webapp.get('/passkeyadd', passkeyAdd)
 webapp.get('/passkeyremove', passkeyRemove)
-webapp.post('/passkeyremove', doPasskeyRemove)
+webapp.delete('/passkeyremove', doPasskeyRemove)
 
 webapp.get('/generate-registration-options', endpointGenerateRegistrationOptions)
 webapp.post('/verify-registration', endpointVerifyRegistrationResponse)

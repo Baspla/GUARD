@@ -516,13 +516,20 @@ export function passkeyAdd(req, res) {
     res.render('passkeyAdd', { title: 'Passkey hinzufügen' });
 }
 
-export function passkeyRemove(req, res) {
+export async function passkeyRemove(req, res) {
     log("passkeyRemove aufgerufen.");
     if (!isLoggedIn(req)) {
         log("passkeyRemove Fehler: Nutzer nicht eingeloggt.");
         return res.redirect('/login');
     }
-    res.render('passkeyRemove', { title: 'Passkey entfernen' });
+    const passkeyId = req.query.id;
+    const userPasskeys = await getUserPasskeys(req.session.uuid);
+    const hasPasskey = userPasskeys.some(passkey => passkey.id === passkeyId);
+    if (!hasPasskey) {
+        log("passkeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
+        return res.status(403).render('error', { error: 403, message: "Nicht berechtigt" });
+    }
+    res.render('passkeyRemove', { title: 'Passkey entfernen', passkeyId: passkeyId });
 }
 
 export async function doPasskeyRemove(req, res) {
@@ -536,8 +543,6 @@ export async function doPasskeyRemove(req, res) {
     const passkeyId = req.query.id;
     // check ob der passkey auch dem Nutzer gehört
     const userPasskeys = await getUserPasskeys(req.session.uuid);
-    console.log("provided passkeyId:", passkeyId);
-    console.log("userPasskeys:", userPasskeys);
     if (!userPasskeys.some(passkey => passkey.id === passkeyId)) {
         log("doPasskeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
         return res.status(403).json({ error: "Nicht berechtigt" });
