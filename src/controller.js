@@ -496,13 +496,13 @@ export function doLogin(req, res) {
     }
 }
 
-export function passkeyManage(req, res) {
+export async function passkeyManage(req, res) {
     log("passkeyManage aufgerufen.");
     if (!isLoggedIn(req)) {
         log("passkeyManage Fehler: Nutzer nicht eingeloggt.");
         return res.redirect('/login');
     }
-    const passkeys = getUserPasskeys(req.session.uuid);
+    const passkeys = await getUserPasskeys(req.session.uuid);
     log(`passkeyManage: Nutzer ${req.session.uuid} hat folgende Passkeys: ${JSON.stringify(passkeys)}`);
     res.render('passkeyManage', { title: 'Passkeys verwalten', passkeys:passkeys });
 }

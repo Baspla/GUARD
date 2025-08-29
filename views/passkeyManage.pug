@@ -12,8 +12,6 @@ block content
             if typeof passkeys === 'undefined' || !passkeys
                 .alert.alert-warning Keine Passkeys gefunden.
             else
-                p passkeys json
-                p= passkeys
                 each passkey in passkeys
                     .card.mb-3
                         .card-body
