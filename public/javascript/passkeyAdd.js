@@ -1,4 +1,4 @@
-const { startRegistration } = SimpleWebAuthnBrowser;
+const { startRegistration, browserSupportsWebAuthn } = SimpleWebAuthnBrowser;
 
 browserSupportsWebAuthn().then((supported) => {
     if (!supported) {

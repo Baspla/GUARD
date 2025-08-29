@@ -1,10 +1,19 @@
-const { startAuthentication } = SimpleWebAuthnBrowser;
+const { startAuthentication, browserSupportsWebAuthn } = SimpleWebAuthnBrowser;
 // <button>
 const elemBegin = document.getElementById('btnBegin');
 // <span>/<p>/etc...
 const elemSuccess = document.getElementById('success');
 // <span>/<p>/etc...
 const elemError = document.getElementById('error');
+
+const elemHide = document.getElementById("passkeyHideBlock");
+
+browserSupportsWebAuthn().then((supported) => {
+    if (!supported) {
+        console.log('Error: WebAuthn is not supported by your browser');
+        elemHide.style.display = "none";
+    }
+});
 
 // Start authentication when the user clicks a button
 elemBegin.addEventListener('click', async () => {
