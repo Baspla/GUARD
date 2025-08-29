@@ -16,6 +16,11 @@ import {
     displaynamechange,
     registerUser,
     token,
+    passkeyAdd,
+    passkeyManage,
+    passkeyRemove,
+    doPasskeyAdd,
+    doPasskeyRemove,
     doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
 } from "./controller.js";
 import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
@@ -74,6 +79,12 @@ webapp.post('/displaynamechange', doDisplaynamechange)
 webapp.post('/usernamechange', doUsernamechange)
 webapp.post('/passwordchange', doPasswordchange)
 webapp.get('/token', token)
+
+webapp.get('/passkeymanage', passkeyManage)
+webapp.get('/passkeyadd', passkeyAdd)
+webapp.get('/passkeyremove', passkeyRemove)
+webapp.post('/passkeyadd', doPasskeyAdd)
+webapp.post('/passkeyremove', doPasskeyRemove)
 
 webapp.get('/login', login)
 

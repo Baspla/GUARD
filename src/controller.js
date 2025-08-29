@@ -485,3 +485,48 @@ export function doLogin(req, res) {
         });
     }
 }
+
+export function passkeyManage(req, res) {
+    log("passkeyManage aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyManage Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    res.render('passkeyManage', { title: 'Passkeys verwalten' });
+}
+
+export function passkeyAdd(req, res) {
+    log("passkeyAdd aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyAdd Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    res.render('passkeyAdd', { title: 'Passkey hinzufügen' });
+}
+
+export function passkeyRemove(req, res) {
+    log("passkeyRemove aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyRemove Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    res.render('passkeyRemove', { title: 'Passkey entfernen' });
+}
+
+export function doPasskeyAdd(req, res) {
+    log("doPasskeyAdd aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("doPasskeyAdd Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    // Hier die Logik zum Hinzufügen des Passkeys implementieren
+}
+
+export function doPasskeyRemove(req, res) {
+    log("doPasskeyRemove aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("doPasskeyRemove Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    // Hier die Logik zum Entfernen des Passkeys implementieren
+}
