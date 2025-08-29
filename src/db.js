@@ -162,10 +162,12 @@ export async function getPasskey(id) {
 
 export async function getUserPasskeys(uuid) {
     const passkeyIds = await rc.hKeys("guard:user:" + escape(uuid) + ":passkeys");
+    console.log("Passkey IDs für Nutzer", uuid, passkeyIds);
     const passkeys = [];
     
     for (const id of passkeyIds) {
         const passkey = await getPasskey(id);
+        console.log("Passkey für Nutzer", uuid, id, passkey);
         if (passkey) {
             passkeys.push(passkey);
         }
