@@ -1,11 +1,9 @@
 const { startRegistration, browserSupportsWebAuthn } = SimpleWebAuthnBrowser;
 
-browserSupportsWebAuthn().then((supported) => {
-    if (!supported) {
-        elemError.innerText = 'Error: WebAuthn is not supported by your browser';
-        return;
-    }
-});
+if (!browserSupportsWebAuthn()) {
+    elemError.innerText = 'Error: WebAuthn is not supported by your browser';
+    return;
+}
 
 // <button>
 const elemBegin = document.getElementById('btnBegin');

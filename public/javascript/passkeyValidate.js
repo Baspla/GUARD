@@ -8,12 +8,10 @@ const elemError = document.getElementById('error');
 
 const elemHide = document.getElementById("passkeyHideBlock");
 
-browserSupportsWebAuthn().then((supported) => {
-    if (!supported) {
-        console.log('Error: WebAuthn is not supported by your browser.');
-        elemHide.style.display = "none";
-    }
-});
+if (!browserSupportsWebAuthn()) {
+    console.log('Error: WebAuthn is not supported by your browser.');
+    elemHide.style.display = "none";
+}
 
 // Start authentication when the user clicks a button
 elemBegin.addEventListener('click', async () => {
