@@ -16,7 +16,18 @@ import {
     displaynamechange,
     registerUser,
     token,
-    doDisplaynamechange, doUsernamechange, doPasswordchange, getInformation
+    passkeyAdd,
+    passkeyManage,
+    passkeyRemove,
+    doPasskeyRemove,
+    doDisplaynamechange,
+    doUsernamechange,
+    doPasswordchange, 
+    getInformation,
+    endpointGenerateAuthenticationOptions,
+    endpointGenerateRegistrationOptions,
+    endpointVerifyAuthenticationResponse,
+    endpointVerifyRegistrationResponse
 } from "./controller.js";
 import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
 import * as bodyParser from "express";
@@ -39,6 +50,7 @@ webapp.set('view engine', 'pug')
 webapp.set('views', __dirname + '/../views')
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
 webapp.use('/js', express.static(__dirname + '/../node_modules/bootstrap/dist/js'))
+webapp.use('/webauthn', express.static(__dirname + '/../node_modules/@simplewebauthn/browser/dist/bundle/'))
 webapp.use('/favicon.ico', express.static(__dirname + '/../public/images/favicon.ico'))
 webapp.use('/images', express.static(__dirname + '/../public/images'))
 webapp.use('/scripts', express.static(__dirname + '/../public/javascript'))
@@ -73,6 +85,16 @@ webapp.post('/displaynamechange', doDisplaynamechange)
 webapp.post('/usernamechange', doUsernamechange)
 webapp.post('/passwordchange', doPasswordchange)
 webapp.get('/token', token)
+
+webapp.get('/passkeymanage', passkeyManage)
+webapp.get('/passkeyadd', passkeyAdd)
+webapp.get('/passkeyremove', passkeyRemove)
+webapp.delete('/passkeyremove', doPasskeyRemove)
+
+webapp.get('/generate-registration-options', endpointGenerateRegistrationOptions)
+webapp.post('/verify-registration', endpointVerifyRegistrationResponse)
+webapp.get('/generate-authentication-options', endpointGenerateAuthenticationOptions)
+webapp.post('/verify-authentication', endpointVerifyAuthenticationResponse)
 
 webapp.get('/login', login)
 

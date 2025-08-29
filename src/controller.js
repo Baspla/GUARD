@@ -1,6 +1,13 @@
-import { getAllUsers } from "./db.js";
+import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter } from "./db.js";
 import fs from "fs";
 import path from "path";
+import {
+    generateRegistrationOptions,
+    verifyRegistrationResponse,
+    generateAuthenticationOptions,
+    verifyAuthenticationResponse
+} from "@simplewebauthn/server";
+import { signToken, verifyToken } from "./jwt.js";
 
 function log(message) {
     const logPath = path.resolve("./logs/app.log");
@@ -97,6 +104,7 @@ import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.
 
 export function login(req, res) {
     const {redirect_uri, error, state} = req.query;
+    const register_enabled = !(process.env.REGISTER_DISABLED == "true");
     log(`Login-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
     if (isLoggedIn(req)) {
         if (redirect_uri == null) {
@@ -128,7 +136,7 @@ export function login(req, res) {
     } else {
         if (redirect_uri == null) {
             log("Login-View für nicht eingeloggten Nutzer ohne ServiceURL.");
-            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state});
+            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state, register_enabled: register_enabled});
         } else {
             let hostname;
             try {
@@ -146,7 +154,8 @@ export function login(req, res) {
                 error: error,
                 hostname: hostname,
                 title: "Anmelden",
-                state: state
+                state: state,
+                register_enabled: register_enabled
             });
         }
     }
@@ -174,12 +183,20 @@ export function registerUser(req, res) {
         log("Nutzer ist bereits eingeloggt. Weiterleitung zu Startseite.");
         return res.redirect('/');
     }
+    if (process.env.REGISTER_DISABLED == "true") {
+        log("Registrierung ist deaktiviert.");
+        return res.render("error", {error: "Registrierung ist deaktiviert.", state: state, redirect_uri: redirect_uri});
+    }
     const {error, state, redirect_uri} = req.query;
     log(`Register-View für nicht eingeloggten Nutzer. error: ${error}, state: ${state}, redirect_uri: ${redirect_uri}`);
     return res.render("register", {error: error, title: "Registrieren", state: state, redirect_uri: redirect_uri});
 }
 
 export function doRegisterUser(req, res, next) {
+    if (process.env.REGISTER_DISABLED == "true") {
+        log("Registrierung ist deaktiviert.");
+        return res.render("error", {error: "Registrierung ist deaktiviert.", state: state, redirect_uri: redirect_uri});
+    }
     const {username, password, passwordRepeat, displayname, secret} = req.body;
     const {redirect_uri, state} = req.query;
     log(`Registrierung gestartet für Nutzer: ${username}, displayname: ${displayname}`);
@@ -239,7 +256,11 @@ function registerTokenAndRedirect(req, res, redirect_uri, state) {
     if (typeof state !== 'undefined') url.searchParams.append('state', state);
     url.searchParams.append('code', token);
     log(`Redirect mit Token: ${token} zu URL: ${url}`);
-    res.redirect(url);
+    if (res) {
+        res.redirect(url);
+    } else {
+        return url.toString();
+    }
 }
 
 export function token(req, res) {
@@ -285,7 +306,7 @@ function isLoggedIn(req) {
     return req.session.uuid != null;
 }
 
-export function dashboard(req, res) {
+export async function dashboard(req, res) {
     const {redirect_uri, error, state} = req.query;
     log(`Dashboard-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
     if (!isLoggedIn(req)) {
@@ -297,12 +318,11 @@ export function dashboard(req, res) {
         log("Dashboard-View: Nutzer nicht eingeloggt. Weiterleitung zu: " + suffix);
         return res.redirect(suffix);
     }
-    let uname = getUsername(req.session.uuid);
-    let dname = getDisplayname(req.session.uuid);
-    Promise.all([uname, dname]).then((values) => {
-        log(`Dashboard-View für Nutzer: ${values[0]}, Displayname: ${values[1]}`);
-        res.render('dashboard', {username: values[0], displayname: values[1], error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
-    });
+    let uname = await getUsername(req.session.uuid);
+    let dname = await getDisplayname(req.session.uuid);
+    log(`Dashboard-View für Nutzer: ${uname}, Displayname: ${dname}`);
+    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
+
 }
 
 export function displaynamechange(req, res) {
@@ -484,4 +504,215 @@ export function doLogin(req, res) {
             });
         });
     }
+}
+
+export async function passkeyManage(req, res) {
+    log("passkeyManage aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyManage Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    const passkeys = await getUserPasskeys(req.session.uuid);
+    log(`passkeyManage: Nutzer ${req.session.uuid} hat folgende Passkeys: ${JSON.stringify(passkeys)}`);
+    res.render('passkeyManage', { title: 'Passkeys verwalten', passkeys:passkeys });
+}
+
+export function passkeyAdd(req, res) {
+    log("passkeyAdd aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyAdd Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    res.render('passkeyAdd', { title: 'Passkey hinzufügen' });
+}
+
+export async function passkeyRemove(req, res) {
+    log("passkeyRemove aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("passkeyRemove Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    const passkeyId = req.query.id;
+    const userPasskeys = await getUserPasskeys(req.session.uuid);
+    const hasPasskey = userPasskeys.some(passkey => passkey.id === passkeyId);
+    if (!hasPasskey) {
+        log("passkeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
+        return res.status(403).render('error', { error: 403, message: "Nicht berechtigt" });
+    }
+    res.render('passkeyRemove', { title: 'Passkey entfernen', passkeyId: passkeyId });
+}
+
+export async function doPasskeyRemove(req, res) {
+    log("doPasskeyRemove aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("doPasskeyRemove Fehler: Nutzer nicht eingeloggt.");
+        return res.redirect('/login');
+    }
+    // Hier die Logik zum Entfernen des Passkeys implementieren
+    // passkey der gelöscht werden soll ist in &id=...
+    const passkeyId = req.query.id;
+    // check ob der passkey auch dem Nutzer gehört
+    const userPasskeys = await getUserPasskeys(req.session.uuid);
+    if (!userPasskeys.some(passkey => passkey.id === passkeyId)) {
+        log("doPasskeyRemove Fehler: Passkey gehört nicht zum Nutzer.");
+        return res.status(403).json({ error: "Nicht berechtigt" });
+    }
+    // Passkey löschen
+    const result = await deletePasskey(passkeyId);
+    if (!result) {
+        log(`doPasskeyRemove Fehler: Passkey konnte nicht gelöscht werden. UUID: ${req.session.uuid}, Passkey ID: ${passkeyId}`);
+        return res.status(500).json({ error: "Passkey konnte nicht gelöscht werden." });
+    }
+    log(`doPasskeyRemove erfolgreich: Passkey gelöscht. UUID: ${req.session.uuid}, Passkey ID: ${passkeyId}`);
+    res.json({ success: result });
+}
+
+const rpName = "GURAD"
+const rpID = process.env.RP_ID || "localhost"
+const rpOrigin = `https://${rpID}`
+
+export async function endpointGenerateRegistrationOptions(req, res) {
+    log("generateRegistrationOptions aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("generateRegistrationOptions Fehler: Nutzer nicht eingeloggt.");
+        return res.status(403).json({ error: "Nicht eingeloggt" });
+    }
+    const userPasskeys = await getUserPasskeys(req.session.uuid) || [];
+    const username = await getUsername(req.session.uuid);
+    const options = await generateRegistrationOptions({
+        rpName,
+        rpID,
+        userName: username,
+        // Don't prompt users for additional information about the authenticator
+        // (Recommended for smoother UX)
+        attestationType: 'none',
+        // Prevent users from re-registering existing authenticators
+        excludeCredentials: userPasskeys.map(passkey => ({
+            id: passkey.id,
+            // Optional
+            transports: passkey.transports,
+        })),
+        // See "Guiding use of authenticators via authenticatorSelection" below
+        authenticatorSelection: {
+            // Defaults
+            residentKey: 'required',
+            userVerification: 'preferred',
+            // Optional
+            authenticatorAttachment: 'platform',
+        },
+    });
+
+    // set current registration options
+    req.session.registrationOptions = options;
+
+    res.json(options);
+}
+
+
+export async function endpointVerifyRegistrationResponse(req, res) {
+    log("verifyRegistrationResponse aufgerufen.");
+    if (!isLoggedIn(req)) {
+        log("verifyRegistrationResponse Fehler: Nutzer nicht eingeloggt.");
+        return res.status(403).json({ error: "Nicht eingeloggt" });
+    }
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const currentOptions = req.session.registrationOptions;
+    let verification;
+    try {
+    verification = await verifyRegistrationResponse({
+        response: body,
+        expectedChallenge: currentOptions.challenge,
+        requireUserVerification: false,
+        expectedOrigin: rpOrigin,
+        expectedRPID: rpID,
+    });
+    } catch (error) {
+    console.error(error);
+    return res.status(400).send({ error: error.message });
+    }
+    const { verified, registrationInfo } = verification;
+    // Save the verified registration
+    if (verified) {
+        const {
+            credential,
+            credentialDeviceType,
+            credentialBackedUp,
+        } = registrationInfo;
+        const passkeyData =  {
+            // `user` here is from Step 2
+            user: req.session.user,
+            // Created by `generateRegistrationOptions()` in Step 1
+            webAuthnUserID: currentOptions.user.id,
+            // A unique identifier for the credential
+            id: credential.id,
+            // The public key bytes, used for subsequent authentication signature verification
+            publicKey: credential.publicKey,
+            // The number of times the authenticator has been used on this site so far
+            counter: credential.counter,
+            // How the browser can talk with this credential's authenticator
+            transports: credential.transports,
+            // Whether the passkey is single-device or multi-device
+            deviceType: credentialDeviceType,
+            // Whether the passkey has been backed up in some way
+            backedUp: credentialBackedUp,
+        };
+        storePasskey(req.session.uuid, passkeyData);
+    }
+    return res.json({ verified });
+}
+
+export async function endpointGenerateAuthenticationOptions(req, res) {
+    log("generateAuthenticationOptions aufgerufen.");
+    const options = await generateAuthenticationOptions({
+        rpID:rpID,
+    });
+
+    // set current authentication options
+    req.session.authenticationOptions = options;
+
+    res.json(options);
+}
+
+export async function endpointVerifyAuthenticationResponse(req, res) {
+    log("verifyAuthenticationResponse aufgerufen.");
+    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    const passkey = await getPasskey(body.id);
+    if (!passkey) {
+        return res.status(400).json({ error: "Passkey nicht gefunden" });
+    }
+    const currentOptions = req.session.authenticationOptions;
+    let veri;
+    try {
+        const { verified, authenticationInfo } = await verifyAuthenticationResponse({
+            response: body,
+            expectedChallenge: currentOptions.challenge,
+            requireUserVerification: false,
+            expectedOrigin: rpOrigin,
+            expectedRPID: rpID,
+            credential: {
+                id: passkey.id,
+                publicKey: passkey.publicKey,
+                counter: passkey.counter,
+                transports: passkey.transports,
+            }
+        });
+        veri = verified;
+        
+        //console.log("verifyAuthenticationResponse Ergebnis:", veri);
+        //console.log("Authentication Info:", authenticationInfo);
+        //console.log("Passkey:", passkey);
+        // Update the passkey's counter in the database to prevent replay attacks
+        await updatePasskeyCounter(passkey.id, authenticationInfo.newCounter);
+    } catch (error) {
+        console.error(error);
+        return res.status(400).send({ error: error.message });
+    }
+    log(`verifyAuthenticationResponse Ergebnis: ${veri}`);
+    if (veri) {
+        // set up the session
+        const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
+        req.session.uuid = uuid;
+        updateLastLogin(uuid);
+    }
+    return res.json({ verified: veri });
 }
