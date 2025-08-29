@@ -295,7 +295,7 @@ function isLoggedIn(req) {
     return req.session.uuid != null;
 }
 
-export function dashboard(req, res) {
+export async function dashboard(req, res) {
     const {redirect_uri, error, state} = req.query;
     log(`Dashboard-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
     if (!isLoggedIn(req)) {
@@ -307,12 +307,11 @@ export function dashboard(req, res) {
         log("Dashboard-View: Nutzer nicht eingeloggt. Weiterleitung zu: " + suffix);
         return res.redirect(suffix);
     }
-    let uname = getUsername(req.session.uuid);
-    let dname = getDisplayname(req.session.uuid);
-    Promise.all([uname, dname]).then((values) => {
-        log(`Dashboard-View für Nutzer: ${values[0]}, Displayname: ${values[1]}`);
-        res.render('dashboard', {username: values[0], displayname: values[1], error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
-    });
+    let uname = await getUsername(req.session.uuid);
+    let dname = await getDisplayname(req.session.uuid);
+    log(`Dashboard-View für Nutzer: ${uname}, Displayname: ${dname}`);
+    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
+
 }
 
 export function displaynamechange(req, res) {
