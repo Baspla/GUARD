@@ -12,13 +12,15 @@
   "author": "Tim Morgner",
   "license": "GNU GPLv3",
   "dependencies": {
+    "@simplewebauthn/browser": "^13.1.2",
+    "@simplewebauthn/server": "^13.1.2",
+    "argon2": "^0.44.0",
     "bootstrap": "^5.3.8",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
     "express-session": "^1.18.2",
     "pug": "^3.0.3",
     "redis": "^5.8.2",
-    "uuid": "^11.1.0",
-    "argon2": "^0.44.0"
+    "uuid": "^11.1.0"
   }
 }
