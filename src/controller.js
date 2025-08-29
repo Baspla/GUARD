@@ -666,8 +666,11 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
     log("verifyAuthenticationResponse aufgerufen.");
     const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const passkey = await getPasskey(body.id);
+    if (!passkey) {
+        return res.status(400).json({ error: "Passkey nicht gefunden" });
+    }
     const currentOptions = req.session.authenticationOptions;
-    let veri,authInfo;
+    let veri;
     try {
         const { verified, authenticationInfo } = await verifyAuthenticationResponse({
             response: body,
