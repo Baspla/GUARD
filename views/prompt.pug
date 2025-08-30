@@ -2,15 +2,15 @@ extends neumorphLayout
 block inner-content
     h1.fs-1.mt-2.mb-3 GUARD SSO
     include errorWarning
-    p Du bist derzeit angemeldet als
-        br
+    p.fs-5 Du bist derzeit angemeldet als
+        br.fs-5
         span.fs-3 #{username}
-    p Möchtest du mit dem Login bei
+    p.fs-5 Möchtest du mit dem Login bei
         |
         |
-        span.text-decoration-underline #{hostname}
+        span.text-decoration-underline.fs-5 #{hostname}
         |  fortfahren?
-        form(method="post").flex.mb-3
+        form(method="post").flex.mb-3.fs-5
             input(type="hidden" name="confirmed" value="true")
-            a.btn.btn-outline-secondary.m-1#logout(href="/logout?returnURL="+returnURL) Abmelden
-            button.btn.btn-primary.m-1#continue(type="submit") Fortfahren
+            a.btn.btn-outline-secondary.m-1.fs-5#logout(href="/logout?returnURL="+returnURL) Abmelden
+            button.btn.btn-primary.m-1.fs-5#continue(type="submit") Fortfahren

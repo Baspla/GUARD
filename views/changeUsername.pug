@@ -2,13 +2,13 @@ extends neumorphLayout
 block inner-content
     h1.fs-1.mt-2.mb-3  GUARD SSO
     include errorWarning
-    p Du bist angemeldet als
-        span  #{username}
+    p.fs-5 Du bist angemeldet als
+        span.fs-5  #{username}
         | .
     h2.lead Hinweis
-    p Beachte, das du dich nach dem Ändern deines Nutzernamens mit dem neuen Nutzernamen anmelden musst.
+    p.fs-5 Beachte, das du dich nach dem Ändern deines Nutzernamens mit dem neuen Nutzernamen anmelden musst.
     form.mb-3(method='post' action='/usernamechange')
-        label.form-label(for="username") Nutzername ändern
-        input.form-control.mb-3#username(placeholder="Nutzername", type="text", name="username", value=username)
-        a.btn.btn.btn-outline-secondary.mt-2.mx-2(href="/") Zurück
-        button.btn.btn-primary.mt-2.mx-2#btn(type="submit") Ändern
+        label.fs-5.form-label(for="username") Nutzername ändern
+        input.fs-5.form-control.mb-3#username(placeholder="Nutzername", type="text", name="username", value=username)
+        a.fs-5.btn.btn.btn-outline-secondary.mt-2.mx-2(href="/") Zurück
+        button.fs-5.btn.btn-primary.mt-2.mx-2#btn(type="submit") Ändern
