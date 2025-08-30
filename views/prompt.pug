@@ -12,10 +12,11 @@ block inner-content
         |  fortfahren?
         form(method="post").flex.mb-3.fs-5
             input(type="hidden" name="confirmed" value="true")
+            - const encode = encodeURIComponent
             if !redirect_uri
                 a.btn.btn-outline-secondary.m-1.fs-5#logout(href="/logout") Abmelden
             else if redirect_uri && !state
-                a.btn.btn-outline-secondary.m-1.fs-5#logout(href="/logout?redirect_uri="+redirect_uri) Abmelden
+                a.btn.btn-outline-secondary.m-1.fs-5#logout(href=`/logout?redirect_uri=${encode(redirect_uri)}`) Abmelden
             else if redirect_uri && state
-                a.btn.btn-outline-secondary.m-1.fs-5#logout(href="/logout?redirect_uri="+redirect_uri+"&state="+state) Abmelden
+                a.btn.btn-outline-secondary.m-1.fs-5#logout(href=`/logout?redirect_uri=${encode(redirect_uri)}&state=${encode(state)}`) Abmelden
             button.btn.btn-primary.m-1.fs-5#continue(type="submit") Fortfahren
