@@ -45,6 +45,99 @@ export function adminPasswordResetView(req, res) {
     res.render('adminPasswordReset', {username: username, title: `Passwort zurücksetzen: ${username}`});
 }
 
+// Einladungslink-System
+export function inviteCreateView(req, res) {
+    // Admin-Formular zum Erstellen eines Einladungslinks anzeigen
+    res.render('inviteCreate', { title: 'Einladung erstellen' });
+}
+
+export function inviteCreatePost(req, res) {
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { inviteId } = req.body;
+    if (!inviteId || inviteId.trim() === "") {
+        return res.redirect('/admin?error=inviteIdMissing');
+    }
+    createInviteLink(inviteId.trim()).then(() => {
+        return res.redirect('/admin');
+    }).catch((err) => {
+        return res.redirect('/admin?error=inviteCreateFailed');
+    });
+}
+
+export function inviteDeleteView(req, res) {
+    // Bestätigungsseite zum Löschen eines Einladungslinks anzeigen
+    const { id } = req.params;
+    res.render('inviteDelete', { title: 'Einladung löschen', invite: { id } });
+}
+
+export function inviteDeletePost(req, res) {
+    const adminUuid = process.env.ADMIN_UUID;
+    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { id } = req.params;
+    if (!id || id.trim() === "") {
+        return res.redirect('/admin?error=inviteIdMissing');
+    }
+    removeInviteLink(id.trim()).then(() => {
+        return res.redirect('/admin');
+    }).catch((err) => {
+        return res.redirect('/admin?error=inviteDeleteFailed');
+    });
+}
+
+export function inviteRegistrationView(req, res) {
+    // Registrierung über Einladung anzeigen
+    const { id } = req.params;
+    res.render('inviteRegistration', { title: 'Registrierung über Einladung', invite: { id } });
+}
+
+export function inviteRegistrationPost(req, res) {
+    const { id } = req.params;
+    const { username, password, passwordRepeat, displayname } = req.body;
+    // Lade Invite-Daten
+    getInviteData(id).then(async (invite) => {
+        if (!invite || (invite.usedAt && invite.usedAt !== "")) {
+            return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        // Validierung
+        if (!username || !password || !passwordRepeat || !displayname) {
+            return res.render('inviteRegistration', { error: "Bitte alle Felder ausfüllen.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        if (password !== passwordRepeat) {
+            return res.render('inviteRegistration', { error: "Passwörter stimmen nicht überein.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        if (!isUsernameValid(username)) {
+            return res.render('inviteRegistration', { error: "Ungültiger Benutzername.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        if (!isPasswordValid(password)) {
+            return res.render('inviteRegistration', { error: "Ungültiges Passwort.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        if (!isDisplaynameValid(displayname)) {
+            return res.render('inviteRegistration', { error: "Ungültiger Anzeigename.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        // Prüfe, ob Username verfügbar
+        const exists = await isUsernameAvailable(username);
+        if (exists) {
+            return res.render('inviteRegistration', { error: "Benutzername bereits vergeben.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+        // Registrierung durchführen
+        const uuid = crypto.randomUUID();
+        try {
+            await storeUser(uuid, username, password, displayname);
+            await setInviteLinkUsed(id);
+            return res.redirect('/login');
+        } catch (err) {
+            return res.render('inviteRegistration', { error: "Fehler bei der Registrierung.", invite: { id }, title: "Registrierung über Einladung" });
+        }
+    }).catch(() => {
+        return res.render('inviteRegistration', { error: "Ungültiger Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
+    });
+}
+
 // Admin: Passwort setzen (Formular-Submit)
 export function doAdminPasswordReset(req, res) {
     const { username } = req.params;

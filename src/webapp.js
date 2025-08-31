@@ -29,7 +29,7 @@ import {
     endpointVerifyAuthenticationResponse,
     endpointVerifyRegistrationResponse
 } from "./controller.js";
-import { adminPasswordResetView, doAdminPasswordReset } from "./controller.js";
+import { adminPasswordResetView, doAdminPasswordReset, inviteCreateView, inviteCreatePost, inviteDeleteView, inviteDeletePost, inviteRegistrationView, inviteRegistrationPost } from "./controller.js";
 import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,6 +67,14 @@ webapp.get('/', dashboard)
 webapp.get('/admin', admin)
 webapp.get('/admin/passwordreset/:username', adminPasswordResetView)
 webapp.post('/admin/passwordreset/:username', doAdminPasswordReset)
+
+// Einladungslink-System
+webapp.get('/admin/invite/create', inviteCreateView)
+webapp.post('/admin/invite/create', inviteCreatePost)
+webapp.get('/admin/invite/delete/:id', inviteDeleteView)
+webapp.post('/admin/invite/delete/:id', inviteDeletePost)
+webapp.get('/register/invite/:id', inviteRegistrationView)
+webapp.post('/register/invite/:id', inviteRegistrationPost)
 
 webapp.get('/info', getInformation)
 

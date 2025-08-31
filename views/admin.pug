@@ -4,21 +4,42 @@ block inner-content
   h1.fs-1.mt-2.mb-3 Admin: Nutzerübersicht
     table.table.table-striped.w-full.text-left.border-collapse
       thead.bg-gray-100
-      tr
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 UUID
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 Displayname
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 Benutzername
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellungsdatum
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 Letzter Login
-        th.px-4.py-2.fs-5.font-semibold.text-gray-700 Aktionen
-      tbody
-      each user in users
         tr
-        td.px-4.py-2.fs-5.border-b.border-gray-200= user.uuid
-        td.px-4.py-2.fs-5.border-b.border-gray-200= user.displayname
-        td.px-4.py-2.fs-5.border-b.border-gray-200= user.username
-        td.px-4.py-2.fs-5.border-b.border-gray-200= user.creation
-        td.px-4.py-2.fs-5.border-b.border-gray-200= user.lastLogin
-        td.px-4.py-2.fs-5.border-b.border-gray-200
-          a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`)
-            button.btn.btn-primary.fs-5.m-1 Passwort zurücksetzen
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 UUID
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 Displayname
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 Benutzername
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellungsdatum
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 Letzter Login
+          th.px-4.py-2.fs-5.font-semibold.text-gray-700 Aktionen
+      tbody
+        each user in users
+          tr
+            td.px-4.py-2.fs-5.border-b.border-gray-200= user.uuid
+            td.px-4.py-2.fs-5.border-b.border-gray-200= user.displayname
+            td.px-4.py-2.fs-5.border-b.border-gray-200= user.username
+            td.px-4.py-2.fs-5.border-b.border-gray-200= user.creation
+            td.px-4.py-2.fs-5.border-b.border-gray-200= user.lastLogin
+            td.px-4.py-2.fs-5.border-b.border-gray-200
+              a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`)
+                button.btn.btn-primary.fs-5.m-1 Passwort zurücksetzen
+
+  h2.fs-3.mt-5.mb-3 Einladungslinks
+    a.btn.btn-success.mb-3(href="/admin/invite/create") Neue Einladung erstellen
+    if invites && invites.length > 0
+      table.table.table-striped.w-full.text-left.border-collapse
+        thead.bg-gray-100
+          tr
+            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Einladungscode
+            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellt am
+            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Genutzt am
+            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Aktionen
+        tbody
+          each invite in invites
+            tr
+              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.id
+              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt ? new Date(Number(invite.createdAt)).toLocaleString() : ""
+              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt && invite.usedAt !== "" ? new Date(Number(invite.usedAt)).toLocaleString() : "-"
+              td.px-4.py-2.fs-5.border-b.border-gray-200
+                a.btn.btn-danger.fs-5.m-1(href=`/admin/invite/delete/${invite.id}`) Löschen
+    else
+      p.text-gray-600 Keine Einladungslinks vorhanden.

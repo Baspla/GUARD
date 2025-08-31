@@ -1,0 +1,20 @@
+extends neumorphLayout
+
+block inner-content
+  h1.fs-1.mt-2.mb-3 Registrierung über Einladung
+  if error
+    .alert.alert-danger= error
+  form(method="post" action=`/register/invite/${invite.id}`)
+    .mb-3
+      label(for="username") Benutzername
+      input#username.form-control(type="text" name="username" required)
+    .mb-3
+      label(for="displayname") Anzeigename
+      input#displayname.form-control(type="text" name="displayname" required)
+    .mb-3
+      label(for="password") Passwort
+      input#password.form-control(type="password" name="password" required)
+    .mb-3
+      label(for="passwordRepeat") Passwort wiederholen
+      input#passwordRepeat.form-control(type="password" name="passwordRepeat" required)
+    button.btn.btn-primary(type="submit") Registrieren

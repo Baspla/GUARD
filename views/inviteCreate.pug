@@ -1,0 +1,9 @@
+extends neumorphLayout
+
+block inner-content
+  h1.fs-1.mt-2.mb-3 Einladung erstellen
+  form(method="post" action="/admin/invite/create")
+    .mb-3
+      label(for="inviteId") Einladungscode
+      input#inviteId.form-control(type="text" name="inviteId" required placeholder="Einladungscode eingeben")
+    button.btn.btn-primary(type="submit") Einladung erstellen
