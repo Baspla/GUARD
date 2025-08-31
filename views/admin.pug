@@ -1,8 +1,9 @@
 extends neumorphLayout
 
 block inner-content
-  h1.fs-1.mt-2.mb-3 Admin: Nutzerübersicht
-    table.table.table-striped.w-full.text-left.border-collapse
+  h1.fs-1.mb-3 Admin: Nutzerübersicht
+  h2.fs-3.mt-3.mb-3 Nutzer
+    table.table.table-striped.w-full.text-left.border-collapse.mt-2
       thead.bg-gray-100
         tr
           th.px-4.py-2.fs-5.font-semibold.text-gray-700 UUID
@@ -23,10 +24,9 @@ block inner-content
               a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`)
                 button.btn.btn-primary.fs-5.m-1 Passwort zurücksetzen
 
-  h2.fs-3.mt-5.mb-3 Einladungslinks
-    a.btn.btn-success.mb-3(href="/admin/invite/create") Neue Einladung erstellen
+  h2.fs-3.mt-3.mb-3 Einladungslinks
     if invites && invites.length > 0
-      table.table.table-striped.w-full.text-left.border-collapse
+      table.table.table-striped.w-full.text-left.border-collapse.mt-2
         thead.bg-gray-100
           tr
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Einladungscode
@@ -43,3 +43,5 @@ block inner-content
                 a.btn.btn-danger.fs-5.m-1(href=`/admin/invite/delete/${invite.id}`) Löschen
     else
       p.text-gray-600 Keine Einladungslinks vorhanden.
+  
+    a.btn.btn-success.mt-2.mb-3(href="/admin/invite/create") Neue Einladung erstellen

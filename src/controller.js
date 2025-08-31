@@ -414,10 +414,11 @@ export async function dashboard(req, res) {
         log("Dashboard-View: Nutzer nicht eingeloggt. Weiterleitung zu: " + suffix);
         return res.redirect(suffix);
     }
-    let uname = await getUsername(req.session.uuid);
-    let dname = await getDisplayname(req.session.uuid);
+    const uname = await getUsername(req.session.uuid);
+    const dname = await getDisplayname(req.session.uuid);
+    const is_admin = req.session.uuid === adminUuid;
     log(`Dashboard-View für Nutzer: ${uname}, Displayname: ${dname}`);
-    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
+    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri,is_admin});
 
 }
 
