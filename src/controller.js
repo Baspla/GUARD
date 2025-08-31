@@ -94,16 +94,18 @@ export function inviteDeletePost(req, res) {
 
 export function inviteRegistrationView(req, res) {
     // Registrierung über Einladung anzeigen
-    const { id } = req.params;
-    res.render('inviteRegistration', { title: 'Registrierung über Einladung', invite: { id } });
+    res.render('inviteRegistration', { title: 'Registrierung über Einladung'});
 }
 
 export function inviteRegistrationPost(req, res) {
-    const { id } = req.params;
-    const { username, password, passwordRepeat, displayname } = req.body;
+    const { username, password, passwordRepeat, displayname, inviteId } = req.body;
+    if (!inviteId || inviteId.trim() === "") {
+        return res.render('inviteRegistration', { error: "Einladungscode fehlt.", title: "Registrierung über Einladung" });
+    }
     // Lade Invite-Daten
-    getInviteLink(id).then(async (invite) => {
+    getInviteLink(inviteId).then(async (invite) => {
         if (!invite || (invite.usedAt && invite.usedAt !== "")) {
+            console.log('tried to used invalid or already used invite link',invite);
             return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
         }
         // Validierung

@@ -39,9 +39,8 @@ block inner-content
           each invite in invites
             tr
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.id
-              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt ? new Date(Number(invite.createdAt)).toLocaleString() : ""
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt
-              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt && invite.usedAt !== "" ? new Date(Number(invite.usedAt)).toLocaleString() : "-"
+              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt && invite.usedAt !== "" ? invite.usedAt : "-"
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedBy && invite.usedBy !== "" ? invite.usedBy : "-"
               td.px-4.py-2.fs-5.border-b.border-gray-200
                 a.btn.btn-danger.fs-5.m-1(href=`/admin/invite/delete/${invite.id}`) Löschen

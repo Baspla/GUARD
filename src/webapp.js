@@ -73,8 +73,8 @@ webapp.get('/admin/invite/create', inviteCreateView)
 webapp.post('/admin/invite/create', inviteCreatePost)
 webapp.get('/admin/invite/delete/:id', inviteDeleteView)
 webapp.post('/admin/invite/delete/:id', inviteDeletePost)
-webapp.get('/register/invite/:id', inviteRegistrationView)
-webapp.post('/register/invite/:id', inviteRegistrationPost)
+webapp.get('/register/invite', inviteRegistrationView)
+webapp.post('/register/invite', inviteRegistrationPost)
 
 webapp.get('/info', getInformation)
 
