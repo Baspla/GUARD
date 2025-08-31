@@ -1,0 +1,24 @@
+extends neumorphLayout
+
+block inner-content
+    .card.shadow.p-4.mx-auto(style="max-width: 500px;")
+        h1.fs-2.mb-4.text-danger.text-center Nutzer löschen
+        p.fs-5.mb-4.text-center Möchten Sie den Nutzer wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+        .list-group.mb-4
+            .list-group-item
+                strong UUID: 
+                span.ms-2.text-monospace #{user.uuid}
+            .list-group-item
+                strong Benutzername: 
+                span.ms-2 #{user.username}
+            .list-group-item
+                strong Displayname: 
+                span.ms-2 #{user.displayname}
+        form(method="post", action=`/admin/deleteuser/${encodeURIComponent(user.username)}`)
+            .d-flex.justify-content-center.gap-3
+                button.btn.btn-danger.fs-5.px-4(type="submit")
+                    i.bi.bi-trash.me-2
+                    | Löschen
+                a.btn.btn-secondary.fs-5.px-4(href="/admin")
+                    i.bi.bi-arrow-left.me-2
+                    | Abbrechen

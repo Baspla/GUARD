@@ -1,4 +1,7 @@
-import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter } from "./db.js";
+import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter,
+    createInviteLink, getInviteLink, removeInviteLink, setInviteLinkUsed, 
+    getAllInviteLinks,
+    deleteUser} from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -16,24 +19,27 @@ function log(message) {
     fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
     console.log(`[${timestamp}] ${message}`);
 }
+
+function isAdmin(req) {
+    return req.session.uuid && req.session.uuid === process.env.ADMIN_UUID;
+}
 export async function admin(req, res) {
     log("Admin-Panel Zugriff versucht von UUID: " + req.session.uuid);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log("Admin-Panel Zugriff verweigert für UUID: " + req.session.uuid);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
     const users = await getAllUsers();
-    log("Admin-Panel Zugriff gewährt. Nutzer geladen: " + users.length);
-    res.render('admin', {users, title: "Admin"});
+    const invites = await getAllInviteLinks();
+    log("Admin-Panel Zugriff gewährt. Nutzer geladen: " + users.length + ", Einladungen geladen: " + (Array.isArray(invites) ? invites.length : 0));
+    res.render('admin', {users, invites, title: "Admin"});
 }
 
 // Admin: Passwort zurücksetzen (Formular)
 export function adminPasswordResetView(req, res) {
     const { username } = req.params;
     log(`AdminPasswordReset-View aufgerufen von UUID: ${req.session.uuid} für username: ${username}`);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
@@ -45,13 +51,144 @@ export function adminPasswordResetView(req, res) {
     res.render('adminPasswordReset', {username: username, title: `Passwort zurücksetzen: ${username}`});
 }
 
+// Einladungslink-System
+export function inviteCreateView(req, res) {
+    // Admin-Formular zum Erstellen eines Einladungslinks anzeigen
+    res.render('inviteCreate', { title: 'Einladung erstellen' });
+}
+
+// Admin: Nutzer löschen (Bestätigungsseite)
+export async function adminDeleteUserView(req, res) {
+    const { username } = req.params;
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        return res.redirect('/admin?error=missingUsername');
+    }
+    const uuid = await getUUIDByUsername(username);
+    if (!uuid) {
+        return res.redirect('/admin?error=userNotFound');
+    }
+    const displayname = await getDisplayname(uuid);
+    res.render('adminDeleteUser', {user: {uuid, username, displayname}, title: `Nutzer löschen: ${username}`});
+}
+
+// Admin: Nutzer löschen (POST)
+export async function adminDeleteUserPost(req, res) {
+    const { username } = req.params;
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        return res.redirect('/admin?error=missingUsername');
+    }
+    const uuid = await getUUIDByUsername(username);
+    if (!uuid) {
+        return res.redirect('/admin?error=userNotFound');
+    }
+    try {
+        await deleteUser(uuid);
+        return res.redirect('/admin');
+    } catch (err) {
+        return res.redirect('/admin?error=deleteFailed');
+    }
+}
+
+export function inviteCreatePost(req, res) {
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { inviteId } = req.body;
+    if (!inviteId || inviteId.trim() === "") {
+        return res.redirect('/admin?error=inviteIdMissing');
+    }
+    createInviteLink(inviteId.trim()).then(() => {
+        return res.redirect('/admin');
+    }).catch((err) => {
+        return res.redirect('/admin?error=inviteCreateFailed');
+    });
+}
+
+export function inviteDeleteView(req, res) {
+    // Bestätigungsseite zum Löschen eines Einladungslinks anzeigen
+    const { id } = req.params;
+    res.render('inviteDelete', { title: 'Einladung löschen', invite: { id } });
+}
+
+export function inviteDeletePost(req, res) {
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    const { id } = req.params;
+    if (!id || id.trim() === "") {
+        return res.redirect('/admin?error=inviteIdMissing');
+    }
+    removeInviteLink(id.trim()).then(() => {
+        return res.redirect('/admin');
+    }).catch((err) => {
+        return res.redirect('/admin?error=inviteDeleteFailed');
+    });
+}
+
+export function inviteRegistrationView(req, res) {
+    // Registrierung über Einladung anzeigen
+    res.render('inviteRegistration', { title: 'Registrierung über Einladung'});
+}
+
+export function inviteRegistrationPost(req, res) {
+    const { username, password, passwordRepeat, displayname, inviteId } = req.body;
+    if (!inviteId || inviteId.trim() === "") {
+        return res.render('inviteRegistration', { error: "Einladungscode fehlt.", title: "Registrierung über Einladung" });
+    }
+    // Lade Invite-Daten
+    getInviteLink(inviteId).then(async (invite) => {
+        if (!invite || (invite.usedAt && invite.usedAt !== "")) {
+            console.log('tried to used invalid or already used invite link',invite);
+            return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        // Validierung
+        if (!username || !password || !passwordRepeat || !displayname) {
+            return res.render('inviteRegistration', { error: "Bitte alle Felder ausfüllen.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        if (password !== passwordRepeat) {
+            return res.render('inviteRegistration', { error: "Passwörter stimmen nicht überein.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        if (!isUsernameValid(username)) {
+            return res.render('inviteRegistration', { error: "Ungültiger Benutzername.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        if (!isPasswordValid(password)) {
+            return res.render('inviteRegistration', { error: "Ungültiges Passwort.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        if (!isDisplaynameValid(displayname)) {
+            return res.render('inviteRegistration', { error: "Ungültiger Anzeigename.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        // Prüfe, ob Username verfügbar
+        const exists = await isUsernameAvailable(username);
+        if (exists) {
+            return res.render('inviteRegistration', { error: "Benutzername bereits vergeben.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+        // Registrierung durchführen
+        const uuid = crypto.randomUUID();
+        try {
+            await storeUser(uuid, username, password, displayname);
+            await setInviteLinkUsed(inviteId, uuid);
+            return res.redirect('/login');
+        } catch (err) {
+            console.log(err);
+            return res.render('inviteRegistration', { error: "Fehler bei der Registrierung.", invite: { inviteId }, title: "Registrierung über Einladung" });
+        }
+    }).catch(() => {
+        return res.render('inviteRegistration', { error: "Ungültiger Einladungslink.", invite: { inviteId }, title: "Registrierung über Einladung" });
+    });
+}
+
 // Admin: Passwort setzen (Formular-Submit)
 export function doAdminPasswordReset(req, res) {
     const { username } = req.params;
     const { password, passwordRepeat } = req.body;
     log(`AdminPasswordReset Aktion von UUID: ${req.session.uuid} für username: ${username}`);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
@@ -318,10 +455,12 @@ export async function dashboard(req, res) {
         log("Dashboard-View: Nutzer nicht eingeloggt. Weiterleitung zu: " + suffix);
         return res.redirect(suffix);
     }
-    let uname = await getUsername(req.session.uuid);
-    let dname = await getDisplayname(req.session.uuid);
+    const uname = await getUsername(req.session.uuid);
+    const dname = await getDisplayname(req.session.uuid);
+    const adminUuid = process.env.ADMIN_UUID;
+    const is_admin = req.session.uuid === adminUuid;
     log(`Dashboard-View für Nutzer: ${uname}, Displayname: ${dname}`);
-    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri});
+    res.render('dashboard', {username: uname, displayname: dname, error: error, title: "Dashboard", state: state, redirect_uri: redirect_uri,is_admin});
 
 }
 

@@ -205,3 +205,68 @@ export async function getPasskeysByWebAuthnUserID(webauthnUserID) {
     
     return getUserPasskeys(uuid);
 }
+
+export async function createInviteLink(id) {
+    const exists = await rc.exists("guard:invite:" + escape(id));
+    if (exists) {
+        throw new Error("Invite link already exists");
+    }
+    const now = Date.now();
+    await rc.hSet("guard:invite:" + escape(id), {
+        id,
+        createdAt: now,
+        usedAt: "",
+        usedBy: ""
+    });
+}
+
+export async function removeInviteLink(id) {
+    await rc.del("guard:invite:" + escape(id));
+}
+
+export async function setInviteLinkUsed(id,uuid){
+    const now = Date.now();
+    await rc.hSet("guard:invite:" + escape(id), "usedAt", now);
+    await rc.hSet("guard:invite:" + escape(id), "usedBy", uuid);
+}
+
+export async function getInviteLink(id) {
+    const data = await rc.hGetAll("guard:invite:" + escape(id));
+    if (!data || Object.keys(data).length === 0) {
+        return null;
+    }
+    return {
+        id: data.id,
+        createdAt: new Date(Number(data.createdAt)).toLocaleString(),
+        usedAt: data.usedAt ? new Date(Number(data.usedAt)).toLocaleString() : "",
+        usedBy: data.usedBy || ""
+    };
+}
+
+export async function getAllInviteLinks() {
+    const keys = await rc.keys("guard:invite:*");
+    const invites = [];
+    for (const key of keys) {
+        const invite = await getInviteLink(key.split(":").pop());
+        if (invite) {
+            invites.push(invite);
+        }
+    }
+    return invites;
+}
+
+// Admin: Nutzer löschen
+export async function deleteUser(uuid) {
+    // Hole alle Passkeys des Nutzers und lösche sie
+    const passkeyIds = await rc.hKeys("guard:user:" + escape(uuid) + ":passkeys");
+    for (const id of passkeyIds) {
+        await deletePasskey(id);
+    }
+    // Lösche Nutzer-Daten
+    const username = await getUsername(uuid);
+    await rc.hDel("guard:usernames", username);
+    await rc.del("guard:user:" + escape(uuid));
+    await rc.del("guard:user:" + escape(uuid) + ":passkeys");
+    // Optional: weitere zugehörige Daten entfernen
+    return true;
+}

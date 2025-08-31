@@ -6,6 +6,8 @@ block inner-content
     a.btn.btn-primary.fs-5.m-1(href="usernamechange") Nutzername ändern
     a.btn.btn-primary.fs-5.m-1(href="passwordchange") Passwort ändern
     a.btn.btn-primary.fs-5.m-1(href="passkeymanage") Passkeys verwalten
+    if is_admin
+      a.btn.btn-warning.fs-5.m-1(href="admin") Admin-Bereich
     br
     .mb-3
     a.btn.btn-outline-secondary.fs-5.m-1#logoutButton(href="logout") Abmelden
