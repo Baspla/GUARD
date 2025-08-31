@@ -18,10 +18,13 @@ function log(message) {
     fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
     console.log(`[${timestamp}] ${message}`);
 }
+
+function isAdmin(req) {
+    return req.session.uuid && req.session.uuid === process.env.ADMIN_UUID;
+}
 export async function admin(req, res) {
     log("Admin-Panel Zugriff versucht von UUID: " + req.session.uuid);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log("Admin-Panel Zugriff verweigert für UUID: " + req.session.uuid);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
@@ -35,8 +38,7 @@ export async function admin(req, res) {
 export function adminPasswordResetView(req, res) {
     const { username } = req.params;
     log(`AdminPasswordReset-View aufgerufen von UUID: ${req.session.uuid} für username: ${username}`);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
@@ -54,9 +56,46 @@ export function inviteCreateView(req, res) {
     res.render('inviteCreate', { title: 'Einladung erstellen' });
 }
 
+// Admin: Nutzer löschen (Bestätigungsseite)
+export async function adminDeleteUserView(req, res) {
+    const { username } = req.params;
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        return res.redirect('/admin?error=missingUsername');
+    }
+    const uuid = await getUUIDByUsername(username);
+    if (!uuid) {
+        return res.redirect('/admin?error=userNotFound');
+    }
+    const displayname = await getDisplayname(uuid);
+    res.render('adminDeleteUser', {user: {uuid, username, displayname}, title: `Nutzer löschen: ${username}`});
+}
+
+// Admin: Nutzer löschen (POST)
+export async function adminDeleteUserPost(req, res) {
+    const { username } = req.params;
+    if (!isAdmin(req)) {
+        return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
+    }
+    if (!username) {
+        return res.redirect('/admin?error=missingUsername');
+    }
+    const uuid = await getUUIDByUsername(username);
+    if (!uuid) {
+        return res.redirect('/admin?error=userNotFound');
+    }
+    try {
+        await deleteUser(uuid);
+        return res.redirect('/admin');
+    } catch (err) {
+        return res.redirect('/admin?error=deleteFailed');
+    }
+}
+
 export function inviteCreatePost(req, res) {
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
     const { inviteId } = req.body;
@@ -77,8 +116,7 @@ export function inviteDeleteView(req, res) {
 }
 
 export function inviteDeletePost(req, res) {
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
     const { id } = req.params;
@@ -149,8 +187,7 @@ export function doAdminPasswordReset(req, res) {
     const { username } = req.params;
     const { password, passwordRepeat } = req.body;
     log(`AdminPasswordReset Aktion von UUID: ${req.session.uuid} für username: ${username}`);
-    const adminUuid = process.env.ADMIN_UUID;
-    if (!req.session.uuid || req.session.uuid !== adminUuid) {
+    if (!isAdmin(req)) {
         log(`AdminPasswordReset Zugriff verweigert für UUID: ${req.session.uuid}`);
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }

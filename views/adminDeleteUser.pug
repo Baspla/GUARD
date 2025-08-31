@@ -1,0 +1,12 @@
+extends neumorphLayout
+
+block inner-content
+  h1.fs-1.mb-3 Nutzer löschen
+  p.fs-4.mb-3 Möchten Sie den Nutzer wirklich löschen?
+  ul
+    li UUID: #{user.uuid}
+    li Benutzername: #{user.username}
+    li Displayname: #{user.displayname}
+  form(method="post", action=`/admin/deleteuser/${encodeURIComponent(user.username)}`)
+    button.btn.btn-danger.fs-5(type="submit") Löschen
+    a.btn.btn-secondary.fs-5.ms-2(href="/admin") Abbrechen

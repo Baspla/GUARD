@@ -254,3 +254,19 @@ export async function getAllInviteLinks() {
     }
     return invites;
 }
+
+// Admin: Nutzer löschen
+export async function deleteUser(uuid) {
+    // Hole alle Passkeys des Nutzers und lösche sie
+    const passkeyIds = await rc.hKeys("guard:user:" + escape(uuid) + ":passkeys");
+    for (const id of passkeyIds) {
+        await deletePasskey(id);
+    }
+    // Lösche Nutzer-Daten
+    const username = await getUsername(uuid);
+    await rc.hDel("guard:usernames", username);
+    await rc.del("guard:user:" + escape(uuid));
+    await rc.del("guard:user:" + escape(uuid) + ":passkeys");
+    // Optional: weitere zugehörige Daten entfernen
+    return true;
+}

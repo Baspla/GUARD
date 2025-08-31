@@ -23,6 +23,8 @@ block inner-content
             td.px-4.py-2.fs-5.border-b.border-gray-200
               a(href=`/admin/passwordreset/${encodeURIComponent(user.username)}`)
                 button.btn.btn-primary.fs-5.m-1 Passwort zurücksetzen
+              a(href=`/admin/deleteuser/${encodeURIComponent(user.username)}`)
+                button.btn.btn-danger.fs-5.m-1 Löschen
 
   h2.fs-3.mt-3.mb-3 Einladungslinks
     if invites && invites.length > 0
@@ -30,7 +32,6 @@ block inner-content
         thead.bg-gray-100
           tr
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Einladungscode
-            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellt am
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellt am
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Genutzt am
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Benutzer

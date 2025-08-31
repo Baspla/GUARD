@@ -30,6 +30,8 @@ import {
     endpointVerifyRegistrationResponse
 } from "./controller.js";
 import { adminPasswordResetView, doAdminPasswordReset, inviteCreateView, inviteCreatePost, inviteDeleteView, inviteDeletePost, inviteRegistrationView, inviteRegistrationPost } from "./controller.js";
+
+import { adminDeleteUserView, adminDeleteUserPost } from "./controller.js";
 import * as bodyParser from "express";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -67,6 +69,10 @@ webapp.get('/', dashboard)
 webapp.get('/admin', admin)
 webapp.get('/admin/passwordreset/:username', adminPasswordResetView)
 webapp.post('/admin/passwordreset/:username', doAdminPasswordReset)
+
+// Admin: Nutzer löschen
+webapp.get('/admin/deleteuser/:username', adminDeleteUserView)
+webapp.post('/admin/deleteuser/:username', adminDeleteUserPost)
 
 // Einladungslink-System
 webapp.get('/admin/invite/create', inviteCreateView)
