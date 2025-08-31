@@ -4,7 +4,7 @@ block inner-content
   h1.fs-1.mt-2.mb-3 Registrierung über Einladung
   if error
     .alert.alert-danger= error
-  form(method="post" action=`/register/invite/${invite.id}`)
+  form(method="post" action=`/register/invite`)
     .mb-3
       label(for="username") Benutzername
       input#username.form-control(type="text" name="username" required)
