@@ -1,6 +1,7 @@
 import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter,
     createInviteLink, getInviteLink, removeInviteLink, setInviteLinkUsed, 
-    getAllInviteLinks} from "./db.js";
+    getAllInviteLinks,
+    deleteUser} from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
