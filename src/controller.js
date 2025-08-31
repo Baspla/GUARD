@@ -1,5 +1,6 @@
 import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter,
-    createInviteLink, getInviteLink, removeInviteLink, setInviteLinkUsed } from "./db.js";
+    createInviteLink, getInviteLink, removeInviteLink, setInviteLinkUsed, 
+    getAllInviteLinks} from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -25,8 +26,9 @@ export async function admin(req, res) {
         return res.status(403).render('error', {error: 403, message: "Zugriff verweigert"});
     }
     const users = await getAllUsers();
-    log("Admin-Panel Zugriff gewährt. Nutzer geladen: " + users.length);
-    res.render('admin', {users, title: "Admin"});
+    const invites = await getAllInviteLinks();
+    log("Admin-Panel Zugriff gewährt. Nutzer geladen: " + users.length + ", Einladungen geladen: " + (Array.isArray(invites) ? invites.length : 0));
+    res.render('admin', {users, invites, title: "Admin"});
 }
 
 // Admin: Passwort zurücksetzen (Formular)
