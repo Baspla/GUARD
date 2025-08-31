@@ -131,9 +131,10 @@ export function inviteRegistrationPost(req, res) {
         const uuid = crypto.randomUUID();
         try {
             await storeUser(uuid, username, password, displayname);
-            await setInviteLinkUsed(id);
+            await setInviteLinkUsed(id, uuid);
             return res.redirect('/login');
         } catch (err) {
+            console.log(err);
             return res.render('inviteRegistration', { error: "Fehler bei der Registrierung.", invite: { id }, title: "Registrierung über Einladung" });
         }
     }).catch(() => {

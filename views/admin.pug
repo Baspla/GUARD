@@ -31,7 +31,7 @@ block inner-content
           tr
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Einladungscode
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellt am
-            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Genutzt am
+            th.px-4.py-2.fs-5.font-semibold.text-gray-700 Erstellt am
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Genutzt am
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Benutzer
             th.px-4.py-2.fs-5.font-semibold.text-gray-700 Aktionen
@@ -40,7 +40,7 @@ block inner-content
             tr
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.id
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt ? new Date(Number(invite.createdAt)).toLocaleString() : ""
-              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt
+              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt && invite.usedAt !== "" ? new Date(Number(invite.usedAt)).toLocaleString() : "-"
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedBy && invite.usedBy !== "" ? invite.usedBy : "-"
               td.px-4.py-2.fs-5.border-b.border-gray-200
