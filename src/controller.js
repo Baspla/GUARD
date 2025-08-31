@@ -1,5 +1,5 @@
 import { deletePasskey, getAllUsers, getPasskey, getUserByWebAuthnID, getUserPasskeys, storePasskey, updatePasskeyCounter,
-    createInviteLink, getInviteData, removeInviteLink, setInviteLinkUsed } from "./db.js";
+    createInviteLink, getInviteLink, removeInviteLink, setInviteLinkUsed } from "./db.js";
 import fs from "fs";
 import path from "path";
 import {
@@ -100,7 +100,7 @@ export function inviteRegistrationPost(req, res) {
     const { id } = req.params;
     const { username, password, passwordRepeat, displayname } = req.body;
     // Lade Invite-Daten
-    getInviteData(id).then(async (invite) => {
+    getInviteLink(id).then(async (invite) => {
         if (!invite || (invite.usedAt && invite.usedAt !== "")) {
             return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
         }
