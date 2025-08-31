@@ -106,41 +106,41 @@ export function inviteRegistrationPost(req, res) {
     getInviteLink(inviteId).then(async (invite) => {
         if (!invite || (invite.usedAt && invite.usedAt !== "")) {
             console.log('tried to used invalid or already used invite link',invite);
-            return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Ungültiger oder bereits genutzter Einladungslink.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         // Validierung
         if (!username || !password || !passwordRepeat || !displayname) {
-            return res.render('inviteRegistration', { error: "Bitte alle Felder ausfüllen.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Bitte alle Felder ausfüllen.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         if (password !== passwordRepeat) {
-            return res.render('inviteRegistration', { error: "Passwörter stimmen nicht überein.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Passwörter stimmen nicht überein.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         if (!isUsernameValid(username)) {
-            return res.render('inviteRegistration', { error: "Ungültiger Benutzername.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Ungültiger Benutzername.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         if (!isPasswordValid(password)) {
-            return res.render('inviteRegistration', { error: "Ungültiges Passwort.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Ungültiges Passwort.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         if (!isDisplaynameValid(displayname)) {
-            return res.render('inviteRegistration', { error: "Ungültiger Anzeigename.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Ungültiger Anzeigename.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         // Prüfe, ob Username verfügbar
         const exists = await isUsernameAvailable(username);
         if (exists) {
-            return res.render('inviteRegistration', { error: "Benutzername bereits vergeben.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Benutzername bereits vergeben.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
         // Registrierung durchführen
         const uuid = crypto.randomUUID();
         try {
             await storeUser(uuid, username, password, displayname);
-            await setInviteLinkUsed(id, uuid);
+            await setInviteLinkUsed(inviteId, uuid);
             return res.redirect('/login');
         } catch (err) {
             console.log(err);
-            return res.render('inviteRegistration', { error: "Fehler bei der Registrierung.", invite: { id }, title: "Registrierung über Einladung" });
+            return res.render('inviteRegistration', { error: "Fehler bei der Registrierung.", invite: { inviteId }, title: "Registrierung über Einladung" });
         }
     }).catch(() => {
-        return res.render('inviteRegistration', { error: "Ungültiger Einladungslink.", invite: { id }, title: "Registrierung über Einladung" });
+        return res.render('inviteRegistration', { error: "Ungültiger Einladungslink.", invite: { inviteId }, title: "Registrierung über Einladung" });
     });
 }
 
