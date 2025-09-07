@@ -444,50 +444,52 @@ function isLoggedIn(req) {
 }
 
 export async function auth_request(req, res) {
-  // Helper to build the original URL the user tried to access
-  const originalUrl = (() => {
-    // Prefer proxy-provided headers if behind NGINX
-    const scheme = req.headers['x-forwarded-proto'] || 'https';
-    const host = req.headers['x-forwarded-host'] || req.headers.host || '';
-    const uri = req.headers['x-original-uri'] || req.originalUrl || '/';
-    return `${scheme}://${host}${uri}`;
-  })();
+    // Helper to build the original URL the user tried to access
+    const originalUrl = (() => {
+        // Prefer proxy-provided headers if behind NGINX
+        const scheme = req.headers['x-forwarded-proto'] || 'https';
+        const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+        const uri = req.headers['x-original-uri'] || req.originalUrl || '/';
+        return `${scheme}://${host}${uri}`;
+    })();
 
-  if (!isLoggedIn(req)) {
-    log("Auth-Request: Nutzer nicht eingeloggt.");
-    
+
     // debug info
     // issue: behind proxy session is gone
     log(`Request Headers: ${JSON.stringify(req.headers)}`);
     log(`Session Data: ${JSON.stringify(req.session)}`);
 
-    // Optional hint headers for gateways or API clients
-    // NGINX won't automatically use these, but you can read them in config
-    // with auth_request_set $login_url $upstream_http_x_login_url; etc.
-    const loginUrl = `/login?redirect_uri=${encodeURIComponent(originalUrl)}`;
-    res.setHeader('X-Login-URL', loginUrl);
-    res.setHeader('X-Return-To', originalUrl);
+    if (!isLoggedIn(req)) {
+        log("Auth-Request: Nutzer nicht eingeloggt.");
+
+        // Optional hint headers for gateways or API clients
+        // NGINX won't automatically use these, but you can read them in config
+        // with auth_request_set $login_url $upstream_http_x_login_url; etc.
+        const loginUrl = `/login?redirect_uri=${encodeURIComponent(originalUrl)}`;
+        res.setHeader('X-Login-URL', loginUrl);
+        res.setHeader('X-Return-To', originalUrl);
+        res.setHeader('Cache-Control', 'no-store');
+
+        return res.status(401).end();
+    }
+
+    log("Auth-Request: Nutzer ist eingeloggt.");
+
+    const uuid = req.session.uuid;
+    const username = await getUsername(uuid);
+    const displayname = await getDisplayname(uuid);
+
+    res.setHeader('X-User-UUID', uuid);
+    res.setHeader('X-User-Username', username);
+    res.setHeader('X-User-Displayname', displayname);
+
+    res.setHeader('X-Auth-Method', 'session');
     res.setHeader('Cache-Control', 'no-store');
 
-    return res.status(401).end();
-  }
-
-  log("Auth-Request: Nutzer ist eingeloggt.");
-
-  const uuid = req.session.uuid;
-  const username = await getUsername(uuid);
-  const displayname = await getDisplayname(uuid);
-
-  res.setHeader('X-User-UUID', uuid);
-  res.setHeader('X-User-Username', username);
-  res.setHeader('X-User-Displayname', displayname);
-
-  res.setHeader('X-Auth-Method', 'session');
-  res.setHeader('Cache-Control', 'no-store');
-
-  // 204 is common for auth_request success; 200 also works
-  return res.status(204).end();
+    // 204 is common for auth_request success; 200 also works
+    return res.status(204).end();
 }
+
 export async function dashboard(req, res) {
     const {redirect_uri, error, state} = req.query;
     log(`Dashboard-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
