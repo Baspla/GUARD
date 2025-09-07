@@ -42,11 +42,17 @@ const webapp = express()
 webapp.use(cookieParser());
 webapp.use(session({
     secret: process.env.SECRET,
-    resave: true,
+    resave: false,
     proxy: true,
-    saveUninitialized: true,
+    name: 'connect.sid',
+    saveUninitialized: false,
     cookie: {
-        maxAge: 1000 * 60 * 60 * 24
+        maxAge: 1000 * 60 * 60 * 24,
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        domain: process.env.COOKIE_DOMAIN || undefined,
+        path: '/'
     }
 }))
 
