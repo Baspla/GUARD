@@ -455,6 +455,11 @@ export async function auth_request(req, res) {
 
   if (!isLoggedIn(req)) {
     log("Auth-Request: Nutzer nicht eingeloggt.");
+    
+    // debug info
+    // issue: behind proxy session is gone
+    log(`Request Headers: ${JSON.stringify(req.headers)}`);
+    log(`Session Data: ${JSON.stringify(req.session)}`);
 
     // Optional hint headers for gateways or API clients
     // NGINX won't automatically use these, but you can read them in config
