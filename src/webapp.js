@@ -50,7 +50,7 @@ webapp.use(session({
     }
 }))
 
-webbapp.set('trust proxy', 1) // trust first proxy
+webapp.set('trust proxy', 1) // trust first proxy
 webapp.set('view engine', 'pug')
 webapp.set('views', __dirname + '/../views')
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
