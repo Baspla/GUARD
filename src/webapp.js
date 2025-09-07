@@ -43,12 +43,14 @@ webapp.use(cookieParser());
 webapp.use(session({
     secret: process.env.SECRET,
     resave: true,
+    proxy: true,
     saveUninitialized: true,
     cookie: {
         maxAge: 1000 * 60 * 60 * 24
     }
 }))
 
+webbapp.set('trust proxy', 1) // trust first proxy
 webapp.set('view engine', 'pug')
 webapp.set('views', __dirname + '/../views')
 webapp.use('/css', express.static(__dirname + '/../node_modules/bootstrap/dist/css'))
