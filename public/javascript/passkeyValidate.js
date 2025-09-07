@@ -21,7 +21,9 @@ elemBegin.addEventListener('click', async () => {
 
     // GET authentication options from the endpoint that calls
     // @simplewebauthn/server -> generateAuthenticationOptions()
-    const resp = await fetch('/generate-authentication-options');
+    // Query-Parameter (z.B. redirect_uri, proxy) weiterreichen
+    const qs = window.location.search || '';
+    const resp = await fetch('/generate-authentication-options' + qs);
     const optionsJSON = await resp.json();
 
     let asseResp;
@@ -50,6 +52,10 @@ elemBegin.addEventListener('click', async () => {
 
     // Show UI appropriate for the `verified` status
     if (verificationJSON && verificationJSON.verified) {
+        if (verificationJSON.redirect) {
+            window.location.href = verificationJSON.redirect;
+            return;
+        }
         window.location.reload();
     } else {
         elemError.innerHTML = `Oh no, something went wrong! Response: <pre>${JSON.stringify(

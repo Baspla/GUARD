@@ -240,9 +240,9 @@ import {
 import {isDisplaynameValid, isPasswordValid, isUsernameValid} from "./validator.js";
 
 export function login(req, res) {
-    const {redirect_uri, error, state} = req.query;
+    const {redirect_uri, error, state, proxy} = req.query;
     const register_enabled = !(process.env.REGISTER_DISABLED == "true");
-    log(`Login-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}`);
+    log(`Login-View aufgerufen. Session UUID: ${req.session.uuid}, redirect_uri: ${redirect_uri}, error: ${error}, state: ${state}, proxy: ${proxy}`);
     if (isLoggedIn(req)) {
         if (redirect_uri == null) {
             log("Nutzer ist bereits eingeloggt ohne ServiceURL.");
@@ -257,6 +257,11 @@ export function login(req, res) {
                 let err = new Error("Die angegebene redirect_uri ist ungültig.");
                 err.status = 400;
                 throw err;
+            }
+            // Proxy-Flow: ohne Token und ohne Prompt direkt weiterleiten
+            if (typeof proxy !== 'undefined') {
+                log(`Proxy-Login erkannt. Direkt-Redirect ohne Token zu: ${redirect_uri}`);
+                return res.redirect(redirect_uri);
             }
             return getUsername(req.session.uuid).then(username => {
                 log(`Prompt-View für Nutzer: ${username}, redirect_uri: ${redirect_uri}`);
@@ -273,7 +278,7 @@ export function login(req, res) {
     } else {
         if (redirect_uri == null) {
             log("Login-View für nicht eingeloggten Nutzer ohne ServiceURL.");
-            return res.render("login", {registerSuffix: "", error: error, title: "Anmelden", state: state, register_enabled: register_enabled});
+            return res.render("login", {registerSuffix: (typeof proxy !== 'undefined' ? "?proxy=" + encodeURIComponent(proxy) : ""), error: error, title: "Anmelden", state: state, register_enabled: register_enabled});
         } else {
             let hostname;
             try {
@@ -287,7 +292,7 @@ export function login(req, res) {
             }
             log(`Login-View für nicht eingeloggten Nutzer mit ServiceURL: ${redirect_uri}`);
             return res.render("login", {
-                registerSuffix: "?redirect_uri=" + redirect_uri + (state ? "&state=" + encodeURIComponent(state) : ""),
+                registerSuffix: "?redirect_uri=" + redirect_uri + (state ? "&state=" + encodeURIComponent(state) : "") + (typeof proxy !== 'undefined' ? "&proxy=" + encodeURIComponent(proxy) : ""),
                 error: error,
                 hostname: hostname,
                 title: "Anmelden",
@@ -335,7 +340,7 @@ export function doRegisterUser(req, res, next) {
         return res.render("error", {error: "Registrierung ist deaktiviert.", state: state, redirect_uri: redirect_uri});
     }
     const {username, password, passwordRepeat, displayname, secret} = req.body;
-    const {redirect_uri, state} = req.query;
+    const {redirect_uri, state, proxy} = req.query;
     log(`Registrierung gestartet für Nutzer: ${username}, displayname: ${displayname}`);
     let suffix = "";
     if (redirect_uri != null) {
@@ -343,6 +348,9 @@ export function doRegisterUser(req, res, next) {
     }
     if (state) {
         suffix += "&state=" + encodeURIComponent(state);
+    }
+    if (typeof proxy !== 'undefined') {
+        suffix += "&proxy=" + encodeURIComponent(proxy);
     }
     if (secret !== process.env.REGISTER_SECRET) {
         log("Registrierung fehlgeschlagen: falsches Secret.");
@@ -373,6 +381,11 @@ export function doRegisterUser(req, res, next) {
             storeUser(uuid, username, password, displayname).then(() => {
                 log(`Nutzer registriert: ${username}, UUID: ${uuid}, Displayname: ${displayname}`);
                 req.session.uuid = uuid;
+                // Proxy-Flow: Nach Registrierung direkt ohne Token zum Service weiterleiten
+                if (redirect_uri && typeof proxy !== 'undefined') {
+                    log(`Proxy-Flow nach Registrierung. Direkt-Redirect ohne Token zu: ${redirect_uri}`);
+                    return res.redirect(redirect_uri);
+                }
                 return res.redirect('/login' + suffix);
             }).catch((err) => {
                 log("Fehler bei Registrierung: " + err);
@@ -625,7 +638,7 @@ export function doPasswordchange(req, res) {
 
 export function doLogin(req, res) {
     const {username, password, confirmed} = req.body;
-    const {redirect_uri, state} = req.query;
+    const {redirect_uri, state, proxy} = req.query;
     log(`doLogin aufgerufen. username: ${username}, confirmed: ${confirmed}, redirect_uri: ${redirect_uri}, state: ${state}`);
     if ((username == null || password == null) && confirmed !== "true") {
         log("doLogin Fehler: Felder fehlen.");
@@ -636,10 +649,18 @@ export function doLogin(req, res) {
         if (state) {
             suffix += '&state=' + encodeURIComponent(state);
         }
+        if (typeof proxy !== 'undefined') {
+            suffix += '&proxy=' + encodeURIComponent(proxy);
+        }
         return res.redirect(suffix);
     }
     if (confirmed === "true") {
         if (isLoggedIn(req)) {
+            // Proxy-Flow: ohne Token direkt zurück
+            if (redirect_uri && typeof proxy !== 'undefined') {
+                log("doLogin: Proxy-Flow bestätigt. Direkt-Redirect ohne Token.");
+                return res.redirect(redirect_uri);
+            }
             log("doLogin: Nutzer bestätigt und eingeloggt. Token wird registriert.");
             return registerTokenAndRedirect(req, res, redirect_uri, state);
         } else {
@@ -664,6 +685,9 @@ export function doLogin(req, res) {
                 if (state) {
                     suffix += '&state=' + encodeURIComponent(state);
                 }
+                if (typeof proxy !== 'undefined') {
+                    suffix += '&proxy=' + encodeURIComponent(proxy);
+                }
                 return res.redirect(suffix);
             }
             checkPassword(uuid, password).then((result) => {
@@ -672,6 +696,11 @@ export function doLogin(req, res) {
                     req.session.uuid = uuid;
                     updateLastLogin(uuid);
                     if (redirect_uri != null) {
+                        // Proxy-Flow: ohne Token direkt zurück
+                        if (typeof proxy !== 'undefined') {
+                            log("doLogin erfolgreich (Proxy-Flow). Direkt-Redirect ohne Token.");
+                            return res.redirect(redirect_uri);
+                        }
                         return registerTokenAndRedirect(req, res, redirect_uri, state);
                     } else {
                         return res.redirect("/");
@@ -684,6 +713,9 @@ export function doLogin(req, res) {
                     }
                     if (state) {
                         suffix += '&state=' + encodeURIComponent(state);
+                    }
+                    if (typeof proxy !== 'undefined') {
+                        suffix += '&proxy=' + encodeURIComponent(proxy);
                     }
                     return res.redirect(suffix);
                 }
@@ -856,6 +888,11 @@ export async function endpointGenerateAuthenticationOptions(req, res) {
     // set current authentication options
     req.session.authenticationOptions = options;
 
+    // Merke evtl. Redirect-Kontext vom Query, damit die Verify-Route darauf reagieren kann
+    const { redirect_uri, proxy } = req.query || {};
+    if (redirect_uri) req.session.redirect_uri = redirect_uri;
+    if (typeof proxy !== 'undefined') req.session.proxy = proxy;
+
     res.json(options);
 }
 
@@ -899,6 +936,13 @@ export async function endpointVerifyAuthenticationResponse(req, res) {
         const uuid = await getUserByWebAuthnID(passkey.webauthnUserID);
         req.session.uuid = uuid;
         updateLastLogin(uuid);
+        // Optional: falls redirect_uri und proxy im Query oder in der Session sind, an Frontend signalisieren
+        const redirect_uri = req.query?.redirect_uri || req.session.redirect_uri;
+        const proxy = (req.query && typeof req.query.proxy !== 'undefined') ? req.query.proxy : req.session.proxy;
+        if (redirect_uri && typeof proxy !== 'undefined') {
+            log(`Passkey-Login (Proxy-Flow). Direkt-Redirect ohne Token zu: ${redirect_uri}`);
+            return res.json({ verified: true, redirect: redirect_uri });
+        }
     }
     return res.json({ verified: veri });
 }
