@@ -16,6 +16,7 @@ import {
     displaynamechange,
     registerUser,
     token,
+    auth_request,
     passkeyAdd,
     passkeyManage,
     passkeyRemove,
@@ -63,6 +64,12 @@ webapp.use(bodyParser.urlencoded({extended: true}));
 //
 // WEP PAGES
 //
+
+webapp.get('/health', (req, res) => {
+    res.status(200).send('OK');
+});
+
+webapp.get('/auth_request', auth_request)
 
 webapp.get('/', dashboard)
 
