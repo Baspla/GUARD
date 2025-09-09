@@ -39,7 +39,8 @@ block inner-content
         tbody
           each invite in invites
             tr
-              td.px-4.py-2.fs-5.border-b.border-gray-200= invite.id
+              td.px-4.py-2.fs-5.border-b.border-gray-200
+                a(href=`/register/invite?inviteId=${invite.id}`)= invite.id
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.createdAt
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedAt && invite.usedAt !== "" ? invite.usedAt : "-"
               td.px-4.py-2.fs-5.border-b.border-gray-200= invite.usedBy && invite.usedBy !== "" ? invite.usedBy : "-"
