@@ -133,7 +133,10 @@ export function inviteDeletePost(req, res) {
 
 export function inviteRegistrationView(req, res) {
     // Registrierung über Einladung anzeigen
-    res.render('inviteRegistration', { title: 'Registrierung über Einladung'});
+    // Falls ein Query-Parameter `code` (oder `inviteId`) übergeben wurde,
+    // diesen an die View weiterreichen, damit das Formularfeld vorbefüllt wird.
+    const code = (req.query && (req.query.code || req.query.inviteId)) || '';
+    res.render('inviteRegistration', { title: 'Registrierung über Einladung', inviteId: code });
 }
 
 export function inviteRegistrationPost(req, res) {
@@ -489,11 +492,9 @@ export async function auth_request(req, res) {
     log("Auth-Request: Nutzer ist eingeloggt.");
 
     const uuid = req.session.uuid;
-    const username = await getUsername(uuid);
     const displayname = await getDisplayname(uuid);
 
     res.setHeader('X-User-UUID', uuid);
-    res.setHeader('X-User-Username', username);
     res.setHeader('X-User-Displayname', displayname);
 
     res.setHeader('X-Auth-Method', 'session');

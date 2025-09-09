@@ -19,5 +19,6 @@ block inner-content
       input#passwordRepeat.form-control(type="password" name="passwordRepeat" required)
     .mb-3
       label(for="inviteId") Einladungscode
-      input#inviteId.form-control(type="text" name="inviteId" required)
+      - var prefillInvite = typeof inviteId !== 'undefined' && inviteId !== null ? inviteId : ''
+      input#inviteId.form-control(type="text" name="inviteId" required value=prefillInvite)
     button.btn.btn-primary(type="submit") Registrieren

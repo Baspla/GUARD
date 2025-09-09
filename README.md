@@ -98,8 +98,13 @@ location / {
     error_page          401 = @sso_signin;                 # handle 401 by redirecting to SSO
 
     # Optionally forward user attributes from SSO (if SSO returns headers)
-    auth_request_set    $sso_user   $upstream_http_x_user; # example header from SSO
-    proxy_set_header    X-User      $sso_user;             # pass to app
+    auth_request_set    $sso_user   $upstream_http_x_user;
+    auth_request_set    $sso_user_uuid  $upstream_http_x_user_uuid;
+    auth_request_set    $sso_displayname $upstream_http_x_user_displayname;
+    
+    proxy_set_header    X-User      $sso_user;
+    proxy_set_header    X-User-UUID        $sso_user_uuid;
+    proxy_set_header    X-User-Displayname $sso_displayname;
 }
 
 # Internal auth subrequest endpoint
